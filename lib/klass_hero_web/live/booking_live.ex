@@ -39,6 +39,7 @@ defmodule KlassHeroWeb.BookingLive do
         socket
         |> assign(
           page_title: gettext("Enrollment - %{title}", title: program.title),
+          active_nav: :bookings,
           program: program,
           schedule_brief: ProgramPresenter.format_schedule_brief(program),
           children: children_for_view,

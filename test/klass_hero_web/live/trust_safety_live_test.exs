@@ -4,32 +4,34 @@ defmodule KlassHeroWeb.TrustSafetyLiveTest do
   import Phoenix.LiveViewTest
 
   describe "TrustSafetyLive" do
-    test "renders trust and safety page", %{conn: conn} do
+    test "renders trust and safety hero with yellow Safety highlight", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/trust-safety")
 
-      assert has_element?(view, "h1", "TRUST & SAFETY")
+      assert has_element?(view, "#mk-trust-hero")
+      # H1 splits the title into "Trust &" and a yellow-highlighted "Safety" span.
+      assert has_element?(view, "#mk-trust-hero h1", "Trust &")
+      assert has_element?(view, "#mk-trust-hero h1 span.bg-hero-yellow-500", "Safety")
     end
 
-    test "displays hero section with shield icon", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
+    test "displays commitment + vetted card section", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/trust-safety")
 
-      assert html =~ "TRUST &amp; SAFETY"
-      assert html =~ "bg-hero-pink-50"
-      assert html =~ "hero-shield-check"
-    end
-
-    test "displays commitment to child safety section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
-
-      assert html =~ "Our Commitment to Child Safety"
+      assert has_element?(view, "#mk-trust-commitment")
+      assert html =~ "Our commitment to child safety"
       assert html =~ "Protect children and families"
-      assert html =~ "Vetted with Care"
+      assert html =~ "Every Hero, carefully reviewed."
+
+      # Stats row: 100% / 6-step / Reporting
+      assert html =~ "100%"
+      assert html =~ "6-step"
+      assert html =~ "Reporting"
     end
 
-    test "displays all six verification steps", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
+    test "displays all six verification steps with numbered badges", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/trust-safety")
 
-      assert html =~ "How We Verify Providers"
+      assert has_element?(view, "#mk-trust-verification")
+      assert html =~ "Six checks. No shortcuts."
       assert html =~ "Identity &amp; Age Verification"
       assert html =~ "Experience Validation"
       assert html =~ "Extended Background Checks"
@@ -38,24 +40,39 @@ defmodule KlassHeroWeb.TrustSafetyLiveTest do
       assert html =~ "Community Standards Agreement"
     end
 
-    test "displays ongoing quality section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
+    test "displays accountability dark slab", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/trust-safety")
 
-      assert html =~ "Ongoing Quality"
-      assert html =~ "bg-gray-900"
+      assert has_element?(view, "#mk-trust-accountability")
+      assert html =~ "Quality &amp; accountability"
+      assert html =~ "may be suspended or removed"
     end
 
-    test "displays CTA with contact link", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
+    test "displays CTA section with Contact link and tagline", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/trust-safety")
 
-      assert html =~ "Have Questions?"
+      assert has_element?(view, "#mk-trust-cta")
+      assert html =~ "Have questions?"
       assert html =~ ~s(href="/contact")
+      assert html =~ "Trust is earned. Safety is non-negotiable."
+      assert html =~ "And at Klass Hero, both come standard."
     end
 
-    test "displays closing tagline", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/trust-safety")
+    test "renders under :marketing chrome (sticky header + dark footer)", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/trust-safety")
 
-      assert html =~ "Trust is earned. Safety is non-negotiable."
+      # mk_header sticky nav
+      assert has_element?(view, "header.sticky nav a", "Programs")
+      # Trust nav item is highlighted as active
+      assert has_element?(
+               view,
+               "header.sticky nav a.text-\\[var\\(--brand-primary-dark\\)\\]",
+               "Trust & Safety"
+             )
+
+      # mk_footer legal links
+      assert html =~ "Privacy"
+      assert html =~ "Terms"
     end
 
     test "page uses mobile-first responsive design", %{conn: conn} do

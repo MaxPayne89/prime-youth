@@ -1,6 +1,8 @@
 defmodule KlassHeroWeb.UserLive.Registration do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
+
   alias KlassHero.Accounts
   alias KlassHero.Accounts.User
   alias KlassHeroWeb.Presenters.TierPresenter
@@ -8,123 +10,140 @@ defmodule KlassHeroWeb.UserLive.Registration do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            {gettext("Register for an account")}
-            <:subtitle>
-              {gettext("Already registered?")}
-              <.link navigate={~p"/users/log-in"} class="font-semibold text-brand hover:underline">
-                {gettext("Log in")}
-              </.link>
-              {gettext("to your account now.")}
-            </:subtitle>
-          </.header>
-        </div>
+    <.mk_page_hero pill={gettext("Sign up")}>
+      <:title>
+        {gettext("Create your")}
+        <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("account")}</span>
+      </:title>
+      <:lede>
+        {gettext("Already registered?")}
+        <.link
+          navigate={~p"/users/log-in"}
+          class="font-bold text-[var(--brand-primary-dark)] hover:underline"
+        >
+          {gettext("Log in")}
+        </.link>
+      </:lede>
+    </.mk_page_hero>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:name]}
-            type="text"
-            label={gettext("Name")}
-            autocomplete="name"
-            required
-            phx-mounted={JS.focus()}
-          />
-
-          <.input
-            field={@form[:email]}
-            type="email"
-            label={gettext("Email")}
-            autocomplete="username"
-            required
-          />
-
-          <fieldset class="mt-6">
-            <legend class="text-sm font-semibold leading-6 text-zinc-800">
-              {gettext("I want to...")}
-            </legend>
-            <p class="mt-1 text-sm text-zinc-500">{gettext("Select one or both options")}</p>
-            <div class="mt-3 space-y-3">
-              <label class="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="user[intended_roles][]"
-                  value="parent"
-                  checked={:parent in (@form[:intended_roles].value || [])}
-                  class="mt-1 rounded border-2 border-zinc-400 text-hero-blue-600 focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
-                />
-                <div>
-                  <span class="font-medium text-zinc-900">
-                    {gettext("Enroll children in programs")}
-                  </span>
-                  <p class="text-sm text-zinc-500">
-                    {gettext("Find and book activities, camps, and classes for your children")}
-                  </p>
-                </div>
-              </label>
-              <label class="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="user[intended_roles][]"
-                  value="provider"
-                  checked={:provider in (@form[:intended_roles].value || [])}
-                  class="mt-1 rounded border-2 border-zinc-400 text-hero-blue-600 focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
-                />
-                <div>
-                  <span class="font-medium text-zinc-900">
-                    {gettext("Offer programs and services")}
-                  </span>
-                  <p class="text-sm text-zinc-500">
-                    {gettext("Create and manage programs, activities, and services for families")}
-                  </p>
-                </div>
-              </label>
-            </div>
-            <.error :for={msg <- Enum.map(@form[:intended_roles].errors, &translate_error/1)}>
-              {msg}
-            </.error>
-          </fieldset>
-
-          <%!-- Provider Tier Selector --%>
-          <div :if={@show_tier_selector} id="tier-selector" class="mt-4 space-y-2">
-            <p class="text-sm font-semibold text-zinc-800">{gettext("Choose your plan")}</p>
-            <div class="space-y-2">
-              <label
-                :for={{key, label, summary} <- TierPresenter.registration_tier_options()}
-                id={"tier-option-#{key}"}
-                class="flex items-start gap-3 cursor-pointer rounded-lg border border-zinc-200 p-3 hover:border-hero-blue-300 transition-colors"
-              >
-                <input
-                  type="radio"
-                  name="user[provider_subscription_tier]"
-                  value={key}
-                  checked={(@form[:provider_subscription_tier].value || "starter") == key}
-                  class="mt-0.5 text-hero-blue-600 focus:ring-hero-blue-500"
-                />
-                <div>
-                  <span class="font-medium text-zinc-900 text-sm">{label}</span>
-                  <p class="text-xs text-zinc-500">{summary}</p>
-                </div>
-              </label>
-            </div>
-            <.error :for={
-              msg <- Enum.map(@form[:provider_subscription_tier].errors, &translate_error/1)
-            }>
-              {msg}
-            </.error>
-          </div>
-
-          <.button
-            phx-disable-with={gettext("Creating account...")}
-            class="btn btn-primary w-full mt-6"
+    <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
+      <div class="max-w-md mx-auto">
+        <.kh_card class="p-7 lg:p-9">
+          <.form
+            for={@form}
+            id="registration_form"
+            phx-submit="save"
+            phx-change="validate"
+            class="space-y-4"
           >
-            {gettext("Create an account")}
-          </.button>
-        </.form>
+            <.mk_input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Name")}
+              placeholder="Anna Schmidt"
+              required
+            />
+            <.mk_input
+              field={@form[:email]}
+              type="email"
+              label={gettext("Email")}
+              placeholder="anna@example.com"
+              required
+            />
+
+            <fieldset class="pt-2">
+              <legend class="text-sm font-semibold text-hero-black">
+                {gettext("I want to...")}
+              </legend>
+              <p class="mt-1 text-sm text-[var(--fg-muted)]">
+                {gettext("Select one or both options")}
+              </p>
+              <div class="mt-3 space-y-3">
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl border border-[var(--border-light)] p-3 hover:border-[var(--brand-primary)] transition-colors">
+                  <input
+                    type="checkbox"
+                    name="user[intended_roles][]"
+                    value="parent"
+                    checked={:parent in (@form[:intended_roles].value || [])}
+                    class="mt-1 rounded border-2 border-[var(--border-medium)] text-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                  />
+                  <div>
+                    <span class="font-semibold text-hero-black">
+                      {gettext("Enroll children in programs")}
+                    </span>
+                    <p class="text-sm text-[var(--fg-muted)]">
+                      {gettext("Find and book activities, camps, and classes for your children")}
+                    </p>
+                  </div>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl border border-[var(--border-light)] p-3 hover:border-[var(--brand-primary)] transition-colors">
+                  <input
+                    type="checkbox"
+                    name="user[intended_roles][]"
+                    value="provider"
+                    checked={:provider in (@form[:intended_roles].value || [])}
+                    class="mt-1 rounded border-2 border-[var(--border-medium)] text-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                  />
+                  <div>
+                    <span class="font-semibold text-hero-black">
+                      {gettext("Offer programs and services")}
+                    </span>
+                    <p class="text-sm text-[var(--fg-muted)]">
+                      {gettext("Create and manage programs, activities, and services for families")}
+                    </p>
+                  </div>
+                </label>
+              </div>
+              <p
+                :for={msg <- Enum.map(@form[:intended_roles].errors, &translate_error/1)}
+                class="mt-2 text-sm text-[var(--error)]"
+              >
+                {msg}
+              </p>
+            </fieldset>
+
+            <div :if={@show_tier_selector} id="tier-selector" class="pt-2 space-y-2">
+              <p class="text-sm font-semibold text-hero-black">{gettext("Choose your plan")}</p>
+              <div class="space-y-2">
+                <label
+                  :for={{key, label, summary} <- TierPresenter.registration_tier_options()}
+                  id={"tier-option-#{key}"}
+                  class="flex items-start gap-3 cursor-pointer rounded-xl border border-[var(--border-light)] p-3 hover:border-[var(--brand-primary)] transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="user[provider_subscription_tier]"
+                    value={key}
+                    checked={(@form[:provider_subscription_tier].value || "starter") == key}
+                    class="mt-0.5 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                  />
+                  <div>
+                    <span class="font-semibold text-hero-black text-sm">{label}</span>
+                    <p class="text-xs text-[var(--fg-muted)]">{summary}</p>
+                  </div>
+                </label>
+              </div>
+              <p
+                :for={msg <- Enum.map(@form[:provider_subscription_tier].errors, &translate_error/1)}
+                class="text-sm text-[var(--error)]"
+              >
+                {msg}
+              </p>
+            </div>
+
+            <.kh_button
+              type="submit"
+              variant={:primary}
+              size={:lg}
+              class="w-full justify-center"
+              phx-disable-with={gettext("Creating account...")}
+            >
+              {gettext("Create an account")}
+            </.kh_button>
+          </.form>
+        </.kh_card>
       </div>
-    </Layouts.app>
+    </section>
     """
   end
 
@@ -139,6 +158,7 @@ defmodule KlassHeroWeb.UserLive.Registration do
     {:ok,
      socket
      |> assign(:show_tier_selector, false)
+     |> assign(:active_nav, :auth)
      |> assign_form(changeset), temporary_assigns: [form: nil]}
   end
 
@@ -170,9 +190,6 @@ defmodule KlassHeroWeb.UserLive.Registration do
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Accounts.change_user_registration(%User{}, user_params, validate_unique: false)
 
-    # Trigger: user toggled role checkboxes
-    # Why: tier selector only relevant for providers, hide when not applicable
-    # Outcome: show_tier_selector drives conditional rendering of plan radio buttons
     intended_roles = Map.get(user_params, "intended_roles", [])
     show_tier = "provider" in intended_roles
 

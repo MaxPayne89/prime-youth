@@ -3,18 +3,22 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   alias KlassHero.Participation
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Provider
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Helpers.TaskHelpers
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
 
   require Logger
 
   @impl true
   def mount(_params, _session, socket) do
-    provider_id = socket.assigns.current_scope.provider.id
+    provider = socket.assigns.current_scope.provider
+    provider_id = provider.id
     selected_date = Date.utc_today()
 
-    # Both queries are independent — run them in parallel
+    # All queries are independent — fan out, await later
     programs_task =
       Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
         ProgramCatalog.list_programs_for_provider(provider_id)
@@ -25,18 +29,37 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
         Participation.list_provider_sessions(provider_id, selected_date)
       end)
 
+    docs_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        Provider.get_provider_verification_documents(provider_id)
+      end)
+
+    staff_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        Provider.list_staff_members(provider_id)
+      end)
+
     provider_programs =
       TaskHelpers.safe_await(programs_task, [], label: "SessionsLive.programs")
 
     provider_program_ids = MapSet.new(provider_programs, & &1.id)
 
+    docs = unwrap(TaskHelpers.safe_await(docs_task, {:ok, []}, label: "SessionsLive.docs"))
+    staff = unwrap(TaskHelpers.safe_await(staff_task, {:ok, []}, label: "SessionsLive.staff"))
+
+    business = build_business_view(provider, provider_programs, staff, docs)
+    can_create_program? = Entitlements.can_create_program?(provider, length(provider_programs))
+
     socket =
       socket
       |> assign(:page_title, gettext("My Sessions"))
+      |> assign(:active_nav, :roster)
       |> assign(:provider_id, provider_id)
       |> assign(:selected_date, selected_date)
       |> assign(:provider_programs, provider_programs)
       |> assign(:provider_program_ids, provider_program_ids)
+      |> assign(:business, business)
+      |> assign(:can_create_program?, can_create_program?)
       |> assign(:form, nil)
       |> stream(:sessions, [])
 
@@ -58,6 +81,24 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
     {:ok, socket}
   end
+
+  # Build the chrome's `business` view from the provider profile, enriched with
+  # actual slot/seat counts and the derived verification status. Mirrors the
+  # shape DashboardLive assigns so the shared `pv_dashboard_chrome` renders
+  # identically across both LiveViews.
+  defp build_business_view(provider, programs, staff, docs) do
+    provider
+    |> ProviderPresenter.to_business_view()
+    |> Map.put(:program_slots_used, length(programs))
+    |> Map.put(:team_seats_used, length(staff))
+    |> Map.put(
+      :verification_status,
+      ProviderPresenter.verification_status_from_docs(provider.verified, docs)
+    )
+  end
+
+  defp unwrap({:ok, value}), do: value
+  defp unwrap(_), do: []
 
   @impl true
   def handle_params(params, _url, socket) do

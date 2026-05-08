@@ -150,6 +150,59 @@
   --color-hero-cream-900: oklch(44% 0.02 75);
 }
 
+/* ==========================================================================
+   Semantic design tokens — bridge between Tailwind v4 @theme color scale and
+   the design-handoff bundle's component-level CSS variables (Primitives.jsx,
+   Sections.jsx). Components reference var(--brand-primary) etc.; the values
+   resolve to the canonical oklch hero-* scale declared in @theme above.
+   ========================================================================== */
+:root {
+  /* Brand */
+  --brand-primary:        var(--color-hero-blue-500);
+  --brand-primary-hover:  var(--color-hero-blue-600);
+  --brand-primary-dark:   var(--color-hero-blue-700);
+  --brand-accent:         var(--color-hero-yellow-500);
+  --brand-accent-hover:   var(--color-hero-yellow-600);
+
+  /* Backgrounds */
+  --bg-base:    var(--color-hero-pink-50);
+  --bg-surface: #ffffff;
+  --bg-muted:   var(--color-hero-cream-100);
+  --bg-inverse: var(--color-hero-black);
+
+  /* Foregrounds */
+  --fg-primary:    var(--color-hero-black);
+  --fg-body:       var(--color-hero-black-100);
+  --fg-muted:      var(--color-hero-grey-600);
+  --fg-subtle:     var(--color-hero-grey-500);
+  --fg-inverse:    #ffffff;
+  --fg-link:       var(--color-hero-blue-600);
+  --fg-link-hover: var(--color-hero-blue-700);
+
+  /* Borders */
+  --border-light:  var(--color-hero-grey-200);
+  --border-medium: var(--color-hero-grey-300);
+  --border-dark:   var(--color-hero-grey-400);
+
+  /* Status */
+  --success:    #10b981;
+  --success-bg: #ecfdf5;
+  --warning:    #f59e0b;
+  --warning-bg: #fffbeb;
+  --error:      #ef4444;
+  --error-bg:   #fef2f2;
+  --info:       var(--color-hero-blue-600);
+  --info-bg:    var(--color-hero-blue-50);
+
+  /* Signature brand gradients */
+  --grad-primary: linear-gradient(90deg,  var(--color-hero-blue-500)   0%, var(--color-hero-blue-600)  100%);
+  --grad-hero:    linear-gradient(135deg, var(--color-hero-blue-400)   0%, var(--color-hero-yellow-500) 50%, var(--color-hero-yellow-500) 100%);
+  --grad-comic:   linear-gradient(90deg,  var(--color-hero-yellow-500) 0%, var(--color-hero-blue-400)  100%);
+  --grad-cool:    linear-gradient(90deg,  var(--color-hero-blue-400)   0%, var(--color-hero-blue-600)  100%);
+  --grad-art:     linear-gradient(90deg,  var(--color-hero-yellow-500) 0%, var(--color-hero-pink-50)   100%);
+  --grad-safety:  linear-gradient(90deg,  #22c55e                      0%, #10b981                      100%);
+}
+
 /* Scroll reveal animations
    All rules are scoped under .js (set in app.js) so that if JS fails
    to load or is disabled, content remains visible rather than stuck hidden. */

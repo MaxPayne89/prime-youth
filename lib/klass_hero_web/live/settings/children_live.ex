@@ -20,7 +20,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
         socket =
           socket
-          |> assign(page_title: gettext("Children Profiles"))
+          |> assign(page_title: gettext("Children Profiles"), active_nav: :children)
           |> assign(parent_id: parent.id)
           |> assign(children_count: children_count)
           |> assign(children_empty?: children_count == 0)

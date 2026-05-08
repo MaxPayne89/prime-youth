@@ -44,6 +44,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
         {:ok,
          socket
          |> assign(:page_title, gettext("Subscription"))
+         |> assign(:active_nav, :subscription)
          |> assign(:provider, provider_profile)
          |> assign(:current_tier, current_tier)
          |> assign(:tiers, TierPresenter.subscription_tiers())}

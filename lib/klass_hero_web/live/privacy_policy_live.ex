@@ -8,6 +8,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
     socket =
       socket
       |> assign(page_title: gettext("Privacy Policy"))
+      |> assign(active_nav: :legal)
 
     {:ok, socket}
   end
@@ -231,7 +232,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
   def render(assigns) do
     ~H"""
     <.document_page
-      gradient_class={Theme.gradient(:cool)}
+      eyebrow_pill={gettext("Privacy")}
       title={gettext("Privacy Policy")}
       subtitle={gettext("Your privacy matters to us")}
       last_updated={last_updated()}

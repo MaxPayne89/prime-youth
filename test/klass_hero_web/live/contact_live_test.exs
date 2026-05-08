@@ -4,11 +4,21 @@ defmodule KlassHeroWeb.ContactLiveTest do
   import Phoenix.LiveViewTest
 
   describe "ContactLive" do
-    test "renders contact page successfully", %{conn: conn} do
+    test "renders peach hero with yellow help highlight + form", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      assert has_element?(view, "h1", "Contact Us")
+      assert has_element?(view, "#mk-contact-hero")
+      assert has_element?(view, "#mk-contact-hero h1", "We're here to")
+      assert has_element?(view, "#mk-contact-hero h1 span.bg-hero-yellow-500", "help")
       assert has_element?(view, "#contact-form")
+    end
+
+    test "renders under :marketing chrome", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/contact")
+
+      assert has_element?(view, "header.sticky nav a", "Contact")
+      assert html =~ "Privacy"
+      assert html =~ "Terms"
     end
 
     test "displays contact information from config", %{conn: conn} do
@@ -23,17 +33,6 @@ defmodule KlassHeroWeb.ContactLiveTest do
       # Phone and address are nil in config, so they should not appear
       refute html =~ "+1 (555) 123-4567"
       refute html =~ "123 Youth Avenue"
-    end
-
-    test "displays office hours", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/contact")
-
-      assert html =~ "Monday - Friday"
-      assert html =~ "9:00 AM - 6:00 PM"
-      assert html =~ "Saturday"
-      assert html =~ "10:00 AM - 4:00 PM"
-      assert html =~ "Sunday"
-      assert html =~ "Closed"
     end
 
     test "validates required fields", %{conn: conn} do
@@ -159,8 +158,7 @@ defmodule KlassHeroWeb.ContactLiveTest do
       html = render(view)
       assert html =~ "Message sent successfully!"
 
-      assert html =~ "We&#39;ll get back to you within 24 hours" or
-               html =~ "We'll get back to you within 24 hours"
+      assert html =~ "We&#39;ve got it" or html =~ "We've got it"
     end
 
     test "resets form after successful submission", %{conn: conn} do

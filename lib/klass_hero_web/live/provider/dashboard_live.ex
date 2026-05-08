@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Enrollment
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
   alias KlassHero.Provider
   alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -127,6 +128,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
           |> assign(total_sessions_completed: 0)
+          |> assign(enrolled_total: 0)
+          |> assign(pending_requests: [])
+          |> assign(top_programs: [])
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -168,6 +172,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     socket =
       socket
       |> assign(page_title: gettext("Edit Profile"))
+      |> assign(active_nav: :home)
       |> assign(form: to_form(changeset))
       |> assign(doc_type: "business_registration")
       |> stream(:verification_docs, docs, reset: true, dom_id: &"vdoc-#{&1.id}")
@@ -191,14 +196,27 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     total_sessions = Provider.get_total_session_count(provider.id)
 
+    program_listings = ProgramCatalog.list_programs_for_provider(provider.id)
+    program_ids = Enum.map(program_listings, & &1.id)
+
+    enrollment_counts = Enrollment.count_active_enrollments_batch(program_ids)
+    enrolled_total = enrollment_counts |> Map.values() |> Enum.sum()
+
+    pending_requests = load_pending_requests(program_ids)
+    top_programs = build_top_programs(program_listings, enrollment_counts)
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
     end
 
     {:noreply,
      socket
+     |> assign(active_nav: :home)
      |> assign(business: business)
-     |> assign(total_sessions_completed: total_sessions)}
+     |> assign(total_sessions_completed: total_sessions)
+     |> assign(enrolled_total: enrolled_total)
+     |> assign(pending_requests: pending_requests)
+     |> assign(top_programs: top_programs)}
   end
 
   @impl true
@@ -210,6 +228,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     {:noreply,
      socket
+     |> assign(active_nav: :home)
      |> stream(:team_members, staff_views, reset: true)
      |> update_staff_count(length(staff_members))}
   end
@@ -218,13 +237,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :programs}} = socket) do
     {:noreply,
      socket
+     |> assign(active_nav: :programs)
      |> refresh_staff_options()
      |> reset_programs_stream()}
   end
 
   @impl true
   def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
+    {:noreply, assign(socket, active_nav: :home)}
   end
 
   # ============================================================================
@@ -498,6 +518,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("add_program", _params, socket) do
+    # Trigger: header CTA fires from any tab, but the program form lives in
+    # the Programs section. Patch over so the form is actually visible.
     {:noreply,
      socket
      |> assign(show_program_form: true, editing_program_id: nil)
@@ -506,7 +528,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> assign(
        participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
      )
-     |> assign(instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id))}
+     |> assign(instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id))
+     |> push_patch(to: ~p"/provider/dashboard/programs")}
   end
 
   @impl true
@@ -1157,10 +1180,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen", Theme.bg(:muted)]}>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <%= case @live_action do %>
-          <% :edit -> %>
+    <%= case @live_action do %>
+      <% :edit -> %>
+        <div class={["min-h-screen", Theme.bg(:muted)]}>
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <.edit_profile_section
               form={@form}
               uploads={@uploads}
@@ -1169,71 +1192,84 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               doc_type={@doc_type}
               document_types={@document_types}
             />
-          <% _ -> %>
-            <.profile_completion_banner :if={@profile_draft?} />
-            <.provider_dashboard_header
-              business={@business}
-              can_create_program?={@can_create_program?}
-            />
-            <.link
-              :if={@dual_role?}
-              id="cross-nav-staff-link"
-              navigate={~p"/staff/dashboard"}
-              class="inline-flex items-center gap-1 text-sm text-brand hover:text-brand/80"
-            >
-              {gettext("View your assignments")} →
-            </.link>
-            <.provider_nav_tabs live_action={@live_action} />
+          </div>
+        </div>
+      <% _ -> %>
+        <.pv_dashboard_chrome
+          business={@business}
+          can_create_program?={@can_create_program?}
+          current_tab={dashboard_tab(@live_action)}
+        >
+          <.profile_completion_banner :if={@profile_draft?} />
+          <.link
+            :if={@dual_role?}
+            id="cross-nav-staff-link"
+            navigate={~p"/staff/dashboard"}
+            class="inline-flex items-center gap-1 text-sm text-brand hover:text-brand/80"
+          >
+            {gettext("View your assignments")} →
+          </.link>
 
-            <%= case @live_action do %>
-              <% :overview -> %>
-                <.overview_section
-                  business={@business}
-                  total_sessions_completed={@total_sessions_completed}
-                />
-              <% :team -> %>
-                <.team_section
-                  team_members={@streams.team_members}
-                  show_staff_form={@show_staff_form}
-                  editing_staff_id={@editing_staff_id}
-                  staff_form={@staff_form}
-                  uploads={@uploads}
-                  categories={@categories}
-                />
-              <% :programs -> %>
-                <.programs_section
-                  programs={@streams.programs}
-                  staff_options={@staff_options}
-                  search_query={@search_query}
-                  selected_staff={@selected_staff}
-                  show_program_form={@show_program_form}
-                  program_form={@program_form}
-                  enrollment_form={@enrollment_form}
-                  participant_policy_form={@participant_policy_form}
-                  uploads={@uploads}
-                  instructor_options={@instructor_options}
-                  categories={@categories}
-                  editing_program_id={@editing_program_id}
-                  show_roster={@show_roster}
-                  roster_program_name={@roster_program_name}
-                  roster_program_id={@roster_program_id}
-                  roster_entries={@roster_entries}
-                  roster_tab={@roster_tab}
-                  roster_invites={@roster_invites}
-                  roster_enrolled_count={@roster_enrolled_count}
-                  roster_invite_count={@roster_invite_count}
-                  import_errors={@import_errors}
-                  can_message?={@can_message?}
-                  sessions_modal={@sessions_modal}
-                  invite_mode={@invite_mode}
-                  single_invite_form={@single_invite_form}
-                />
-            <% end %>
-        <% end %>
-      </div>
-    </div>
+          <%= case @live_action do %>
+            <% :overview -> %>
+              <.overview_section
+                business={@business}
+                total_sessions_completed={@total_sessions_completed}
+                active_program_count={@programs_count}
+                enrolled_total={@enrolled_total}
+                pending_requests={@pending_requests}
+                top_programs={@top_programs}
+              />
+            <% :team -> %>
+              <.team_section
+                team_members={@streams.team_members}
+                show_staff_form={@show_staff_form}
+                editing_staff_id={@editing_staff_id}
+                staff_form={@staff_form}
+                uploads={@uploads}
+                categories={@categories}
+              />
+            <% :programs -> %>
+              <.programs_section
+                programs={@streams.programs}
+                staff_options={@staff_options}
+                search_query={@search_query}
+                selected_staff={@selected_staff}
+                show_program_form={@show_program_form}
+                program_form={@program_form}
+                enrollment_form={@enrollment_form}
+                participant_policy_form={@participant_policy_form}
+                uploads={@uploads}
+                instructor_options={@instructor_options}
+                categories={@categories}
+                editing_program_id={@editing_program_id}
+                show_roster={@show_roster}
+                roster_program_name={@roster_program_name}
+                roster_program_id={@roster_program_id}
+                roster_entries={@roster_entries}
+                roster_tab={@roster_tab}
+                roster_invites={@roster_invites}
+                roster_enrolled_count={@roster_enrolled_count}
+                roster_invite_count={@roster_invite_count}
+                import_errors={@import_errors}
+                can_message?={@can_message?}
+                sessions_modal={@sessions_modal}
+                invite_mode={@invite_mode}
+                single_invite_form={@single_invite_form}
+              />
+          <% end %>
+        </.pv_dashboard_chrome>
+    <% end %>
     """
   end
+
+  # Map this LV's live_action to the provider_nav_tabs vocabulary.
+  # `:edit` falls back to :overview so the tab bar still shows a sensible
+  # state when the edit screen is reached without going through a tab.
+  defp dashboard_tab(:overview), do: :overview
+  defp dashboard_tab(:team), do: :team
+  defp dashboard_tab(:programs), do: :programs
+  defp dashboard_tab(_), do: :overview
 
   # ============================================================================
   # Profile Completion Banner
@@ -1414,18 +1450,90 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Dashboard Tab Templates
   # ============================================================================
 
+  attr :business, :map, required: true
+  attr :total_sessions_completed, :integer, required: true
+  attr :active_program_count, :integer, required: true
+  attr :enrolled_total, :integer, required: true
+  attr :pending_requests, :list, required: true
+  attr :top_programs, :list, required: true
+
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <.provider_stat_card
-          label={gettext("Sessions Completed")}
-          value={to_string(@total_sessions_completed)}
-          icon="hero-check-badge-mini"
-          icon_bg="bg-green-100"
-          icon_color="text-green-600"
+      <%!-- 4-up KPI grid. Revenue + Rating disabled until Stripe transactions
+            and a review/rating model land. --%>
+      <section id="provider-dashboard-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <.pv_stat_card
+          title={gettext("Active programs")}
+          value={Integer.to_string(@active_program_count)}
+          icon="hero-academic-cap"
+          tone={:primary}
         />
-      </div>
+        <.pv_stat_card
+          title={gettext("Enrolled kids")}
+          value={Integer.to_string(@enrolled_total)}
+          icon="hero-users"
+          tone={:cool}
+          caption={gettext("Across all programs")}
+        />
+        <.pv_stat_card
+          title={gettext("Revenue (this week)")}
+          value="—"
+          icon="hero-currency-euro"
+          tone={:safety}
+          disabled={true}
+          caption={gettext("Coming soon")}
+        />
+        <.pv_stat_card
+          title={gettext("Rating")}
+          value="—"
+          icon="hero-star"
+          tone={:art}
+          disabled={true}
+          caption={gettext("Coming soon")}
+        />
+      </section>
+
+      <%!-- Earnings chart placeholder — empty data renders the coming-soon explainer. --%>
+      <section id="provider-earnings-chart">
+        <.pv_earnings_chart data={[]} />
+      </section>
+
+      <%!-- Top programs + pending requests side-by-side on desktop. --%>
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <.kh_card class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">{gettext("Your top programs")}</h3>
+            <.link
+              navigate={~p"/provider/dashboard/programs"}
+              class="text-sm font-bold text-[var(--brand-primary-dark)]"
+            >
+              {gettext("Manage")} →
+            </.link>
+          </div>
+          <div :if={@top_programs == []} class="text-sm text-hero-grey-600">
+            {gettext("No programs yet — add your first one from the Programs tab.")}
+          </div>
+          <div class="space-y-1">
+            <.pv_program_row :for={p <- @top_programs} program={p} />
+          </div>
+        </.kh_card>
+
+        <.kh_card class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">{gettext("Pending booking requests")}</h3>
+            <span class="text-xs text-hero-grey-600 font-semibold">
+              {length(@pending_requests)} {gettext("pending")}
+            </span>
+          </div>
+          <div :if={@pending_requests == []} class="text-sm text-hero-grey-600">
+            {gettext("No pending requests right now.")}
+          </div>
+          <div class="space-y-3">
+            <.pv_request_card :for={r <- @pending_requests} request={r} />
+          </div>
+        </.kh_card>
+      </section>
 
       <.business_profile_card business={@business} />
 
@@ -1469,20 +1577,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             )}
           </p>
         </div>
-        <button
-          type="button"
+        <.kh_button
           id="add-member-btn"
+          variant={:yellow}
+          size={:sm}
+          icon="hero-user-plus-mini"
           phx-click="add_member"
-          class={[
-            "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
-            "text-hero-charcoal font-semibold active:scale-[0.98]",
-            Theme.rounded(:lg),
-            Theme.transition(:normal)
-          ]}
         >
-          <.icon name="hero-user-plus-mini" class="w-5 h-5" />
           {gettext("Add Team Member")}
-        </button>
+        </.kh_button>
       </div>
 
       <%= if @show_staff_form do %>
@@ -1668,6 +1771,73 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp blank_single_invite_form do
     to_form(Enrollment.change_single_invite(), as: "single_invite")
   end
+
+  # Aggregate pending invites across all provider programs and shape them
+  # for `pv_request_card` (parent name, program, child, when, color).
+  defp load_pending_requests(program_ids) do
+    palette = ["#FFEAC9", "#33CFFF", "#FFFF36", "#FFD896"]
+
+    program_ids
+    |> Enum.flat_map(&safe_list_invites/1)
+    |> Enum.with_index()
+    |> Enum.map(fn {invite, idx} ->
+      %{
+        id: invite.id,
+        parent: invite.invitee_name || invite.invitee_email || "Unknown",
+        program: invite.program_id,
+        child: invite[:child_name] || "—",
+        when: invite[:created_at] && Calendar.strftime(invite.created_at, "%b %d"),
+        color: Enum.at(palette, rem(idx, length(palette)))
+      }
+    end)
+    |> Enum.take(5)
+  end
+
+  defp safe_list_invites(program_id) do
+    case Enrollment.list_program_invites(program_id) do
+      {:ok, invites} -> Enum.filter(invites, &(&1.status == :pending))
+      _ -> []
+    end
+  end
+
+  # Top 5 provider programs sorted by active-enrollment count desc.
+  # Source is the rich %ProgramListing{} already loaded in handle_params.
+  defp build_top_programs(listings, enrollment_counts) do
+    today = Date.utc_today()
+
+    listings
+    |> Enum.map(&build_program_row(&1, enrollment_counts, today))
+    |> Enum.sort_by(& &1.booked, :desc)
+    |> Enum.take(5)
+  end
+
+  defp build_program_row(%ProgramListing{} = p, enrollment_counts, today) do
+    %{
+      id: p.id,
+      title: p.title,
+      booked: Map.get(enrollment_counts, p.id, 0),
+      status: derive_program_status(p, today),
+      cover: p.cover_image_url && "url(#{p.cover_image_url})"
+    }
+  end
+
+  # %ProgramListing{} carries no explicit status; derive a coarse pill from its
+  # registration and run-window dates. :full is capacity-driven and out of scope
+  # here — capacity isn't projected onto the listing read model.
+  defp derive_program_status(%ProgramListing{} = p, today) do
+    cond do
+      not_yet_open?(p.registration_start_date, today) -> :draft
+      past?(p.registration_end_date, today) -> :archived
+      past?(p.end_date, today) -> :archived
+      true -> :live
+    end
+  end
+
+  defp not_yet_open?(nil, _today), do: false
+  defp not_yet_open?(start_date, today), do: Date.before?(today, start_date)
+
+  defp past?(nil, _today), do: false
+  defp past?(date, today), do: Date.after?(today, date)
 
   defp fetch_verification_docs(provider_id) do
     case Provider.get_provider_verification_documents(provider_id) do

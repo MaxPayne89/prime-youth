@@ -116,7 +116,7 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
     session =
       session
       |> fill_in(Query.css("#login_form_password_email"), with: email)
-      |> fill_in(Query.css("#user_password"), with: valid_user_password())
+      |> fill_in(Query.css("#login_form_password_password"), with: valid_user_password())
       |> click(Query.css("#login_form_password button[name='user[remember_me]']"))
 
     # The login form uses phx-trigger-action: after the LiveView event sets

@@ -1,112 +1,134 @@
 defmodule KlassHeroWeb.UserLive.Login do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
+
   alias KlassHero.Accounts
   alias Swoosh.Adapters.Local
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm space-y-4">
-        <div class="text-center">
-          <h2 class="text-3xl font-bold text-zinc-900">{gettext("Welcome Back")}</h2>
-          <p class="mt-2 text-sm text-zinc-600">
-            <%= if @current_scope do %>
-              {gettext("You need to reauthenticate to perform sensitive actions on your account.")}
-            <% else %>
-              {gettext("Don't have an account?")} <.link
-                navigate={~p"/users/register"}
-                class="font-semibold text-brand hover:underline"
-                phx-no-format
-              >{gettext("Register")}</.link> {gettext("for an account now.")}
-            <% end %>
-          </p>
-        </div>
+    <.mk_page_hero pill={gettext("Sign in")}>
+      <:title>
+        {gettext("Welcome")}
+        <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("back")}</span>
+      </:title>
+      <:lede>
+        <%= if @current_scope do %>
+          {gettext("You need to reauthenticate to perform sensitive actions on your account.")}
+        <% else %>
+          {gettext("Sign in to continue. Don't have an account?")}
+          <.link
+            navigate={~p"/users/register"}
+            class="font-bold text-[var(--brand-primary-dark)] hover:underline"
+          >
+            {gettext("Register")}
+          </.link>
+        <% end %>
+      </:lede>
+    </.mk_page_hero>
 
-        <div :if={local_mail_adapter?()} class="alert alert-info">
-          <.icon name="hero-information-circle" class="size-6 shrink-0" />
-          <div>
-            <p>{gettext("You are running the local mail adapter.")}</p>
-            <p>
-              {gettext("To see sent emails, visit")} <.link href="/dev/mailbox" class="underline">{gettext("the mailbox page")}</.link>.
-            </p>
+    <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
+      <div class="max-w-md mx-auto">
+        <.kh_card class="p-7 lg:p-9">
+          <div :if={local_mail_adapter?()} class="alert alert-info mb-6">
+            <.icon name="hero-information-circle" class="size-6 shrink-0" />
+            <div>
+              <p>{gettext("You are running the local mail adapter.")}</p>
+              <p>
+                {gettext("To see sent emails, visit")}
+                <.link href="/dev/mailbox" class="underline">
+                  {gettext("the mailbox page")}
+                </.link>
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div :if={!@show_password_form}>
-          <.form
-            :let={f}
-            for={@form}
-            id="login_form_magic_mobile"
-            action={~p"/users/log-in"}
-            phx-submit="submit_magic"
-          >
-            <.input
-              readonly={!!@current_scope}
-              field={f[:email]}
-              type="email"
-              label={gettext("Email")}
-              autocomplete="username"
-              required
-              phx-mounted={JS.focus()}
-            />
-            <.button class="btn btn-primary w-full mt-6">
-              {gettext("Send Magic Link")}
-            </.button>
-          </.form>
+          <%= if !@show_password_form do %>
+            <.form
+              :let={f}
+              for={@form}
+              id="login_form_magic"
+              action={~p"/users/log-in"}
+              phx-submit="submit_magic"
+              class="space-y-4"
+            >
+              <.mk_input
+                field={f[:email]}
+                type="email"
+                label={gettext("Email")}
+                placeholder="you@example.com"
+                required
+              />
+              <.kh_button type="submit" variant={:primary} size={:lg} class="w-full justify-center">
+                {gettext("Send magic link")}
+              </.kh_button>
+            </.form>
 
-          <button
-            type="button"
-            phx-click="toggle_form"
-            class="btn btn-ghost w-full mt-4"
-          >
-            {gettext("Or use password")}
-          </button>
-        </div>
+            <button
+              type="button"
+              phx-click="toggle_form"
+              class="mt-4 w-full text-center text-sm font-semibold text-[var(--fg-muted)] hover:text-hero-black transition-colors"
+            >
+              {gettext("Or use password")}
+            </button>
+          <% else %>
+            <.form
+              :let={f}
+              for={@form}
+              id="login_form_password"
+              action={~p"/users/log-in"}
+              phx-submit="submit_password"
+              phx-trigger-action={@trigger_submit}
+              class="space-y-4"
+            >
+              <.mk_input
+                field={f[:email]}
+                type="email"
+                label={gettext("Email")}
+                placeholder="you@example.com"
+                required
+              />
+              <.mk_input
+                field={f[:password]}
+                type="password"
+                label={gettext("Password")}
+                required
+              />
+              <div class="space-y-2 pt-2">
+                <button
+                  type="submit"
+                  name={@form[:remember_me].name}
+                  value="true"
+                  class={
+                    [
+                      "inline-flex items-center justify-center gap-2 w-full px-7 py-3.5 text-lg rounded-xl",
+                      # typography-lint-ignore: marketing form CTA mirrors KhButton primary surface
+                      "font-display font-bold tracking-tight",
+                      "bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-black hover:shadow-lg hover:-translate-y-px transition-all cursor-pointer"
+                    ]
+                  }
+                >
+                  {gettext("Log in and stay logged in")} <span aria-hidden="true">→</span>
+                </button>
+                <.kh_button type="submit" variant={:ghost} size={:lg} class="w-full justify-center">
+                  {gettext("Log in only this time")}
+                </.kh_button>
+              </div>
+            </.form>
 
-        <div :if={@show_password_form}>
-          <.form
-            :let={f}
-            for={@form}
-            id="login_form_password"
-            action={~p"/users/log-in"}
-            phx-submit="submit_password"
-            phx-trigger-action={@trigger_submit}
-          >
-            <.input
-              readonly={!!@current_scope}
-              field={f[:email]}
-              type="email"
-              label={gettext("Email")}
-              autocomplete="username"
-              required
-              phx-mounted={JS.focus()}
-            />
-            <.input
-              field={@form[:password]}
-              type="password"
-              label={gettext("Password")}
-              autocomplete="current-password"
-            />
-            <.button class="btn btn-primary w-full mt-6" name={@form[:remember_me].name} value="true">
-              {gettext("Log in and stay logged in")} <span aria-hidden="true">→</span>
-            </.button>
-            <.button class="btn btn-primary btn-soft w-full mt-2">
-              {gettext("Log in only this time")}
-            </.button>
-          </.form>
-
-          <button
-            type="button"
-            phx-click="toggle_form"
-            class="btn btn-ghost w-full mt-4"
-          >
-            {gettext("Or use magic link")}
-          </button>
-        </div>
+            <button
+              type="button"
+              phx-click="toggle_form"
+              class="mt-4 w-full text-center text-sm font-semibold text-[var(--fg-muted)] hover:text-hero-black transition-colors"
+            >
+              {gettext("Or use magic link")}
+            </button>
+          <% end %>
+        </.kh_card>
       </div>
-    </Layouts.app>
+    </section>
     """
   end
 
@@ -118,7 +140,13 @@ defmodule KlassHeroWeb.UserLive.Login do
 
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false, show_password_form: false)}
+    {:ok,
+     assign(socket,
+       form: form,
+       trigger_submit: false,
+       show_password_form: false,
+       active_nav: :auth
+     )}
   end
 
   @impl true

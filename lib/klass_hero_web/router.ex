@@ -55,9 +55,9 @@ defmodule KlassHeroWeb.Router do
   scope "/", KlassHeroWeb do
     pipe_through :browser
 
-    # Public routes - optional authentication
-    live_session :public,
-      layout: {KlassHeroWeb.Layouts, :app},
+    # All public marketing routes — sticky horizontal mk_header + dark mk_footer chrome.
+    live_session :marketing,
+      layout: {KlassHeroWeb.Layouts, :marketing},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},
@@ -66,16 +66,21 @@ defmodule KlassHeroWeb.Router do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
+      live "/trust-safety", TrustSafetyLive, :index
       live "/about", AboutLive, :index
       live "/contact", ContactLive, :index
+      live "/for-providers", ForProvidersLive, :index
       live "/privacy", PrivacyPolicyLive, :index
       live "/terms", TermsOfServiceLive, :index
-      live "/trust-safety", TrustSafetyLive, :index
     end
 
-    # Protected routes - authentication required
+    # Parent app surface — sidebar layout, parent-role required.
+    # Layout swap (:app → :parent_app) is Phase 2 of the design-handoff
+    # migration. /family/settings duplicates /settings under the bundle's
+    # canonical parent path; both keep working until a follow-up adds a
+    # 301 redirect for the legacy /settings tree.
     live_session :authenticated,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :parent_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -84,18 +89,29 @@ defmodule KlassHeroWeb.Router do
         {RestoreLocale, :restore_locale}
       ] do
       live "/dashboard", DashboardLive, :index
+
       live "/settings", SettingsLive, :index
       live "/settings/children", Settings.ChildrenLive, :index
       live "/settings/children/new", Settings.ChildrenLive, :new
       live "/settings/children/:child_id/edit", Settings.ChildrenLive, :edit
+
+      # Bundle's canonical paths (Q2.4 — locked to dual-mount for v1).
+      live "/family/settings", SettingsLive, :index
+      live "/family/settings/children", Settings.ChildrenLive, :index
+      live "/family/settings/children/new", Settings.ChildrenLive, :new
+      live "/family/settings/children/:child_id/edit", Settings.ChildrenLive, :edit
+
       live "/programs/:id/booking", BookingLive, :new
       live "/messages", MessagesLive.Index, :index
       live "/messages/:id", MessagesLive.Show, :show
     end
 
-    # Provider routes - provider role required
+    # Provider routes - provider role required.
+    # Layout swap (:app → :provider_app) is Phase 3 of the design-handoff
+    # migration. Black sidebar + yellow active accent across all
+    # /provider/* surfaces.
     live_session :require_provider,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :provider_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -127,9 +143,9 @@ defmodule KlassHeroWeb.Router do
       end
     end
 
-    # Parent routes - parent role required
+    # Parent routes - parent role required (strict require_parent guard)
     live_session :require_parent,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :parent_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -140,11 +156,19 @@ defmodule KlassHeroWeb.Router do
       scope "/parent", Parent do
         live "/participation", ParticipationHistoryLive, :index
       end
+
+      # Bundle's canonical /participation path (no /parent prefix). Same
+      # LiveView; old /parent/participation kept as alias.
+      scope "/", Parent do
+        live "/participation", ParticipationHistoryLive, :index
+      end
     end
 
-    # Staff provider routes - staff_provider role required
+    # Staff provider routes - staff_provider role required.
+    # Q3.1 locked: staff surface uses the same provider_app layout for
+    # visual consistency; bundle doesn't ship a separate staff design.
     live_session :require_staff_provider,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :provider_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -266,7 +290,7 @@ defmodule KlassHeroWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :marketing},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -293,6 +317,7 @@ defmodule KlassHeroWeb.Router do
     get "/invites/:token", InviteClaimController, :show
 
     live_session :current_user,
+      layout: {KlassHeroWeb.Layouts, :marketing},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},

@@ -16,11 +16,11 @@ defmodule KlassHeroWeb.Features.LoginFeatureTest do
 
       conn
       |> visit("/users/log-in")
-      |> assert_has("h2", text: "Welcome Back")
-      |> within("#login_form_magic_mobile", fn session ->
+      |> assert_has("h1", text: "Welcome")
+      |> within("#login_form_magic", fn session ->
         session
         |> fill_in("Email", with: user.email)
-        |> click_button("Send Magic Link")
+        |> click_button("Send magic link")
       end)
       |> assert_has("[role='alert']", text: "If your email is in our system")
 
@@ -36,7 +36,7 @@ defmodule KlassHeroWeb.Features.LoginFeatureTest do
     test "user can toggle to password form", %{conn: conn} do
       conn
       |> visit("/users/log-in")
-      |> assert_has("button", text: "Send Magic Link")
+      |> assert_has("button", text: "Send magic link")
       |> click_button("Or use password")
       |> assert_has("button", text: "Log in and stay logged in")
       |> assert_has("input[type='password']")

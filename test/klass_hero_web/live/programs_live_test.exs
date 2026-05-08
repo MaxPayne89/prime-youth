@@ -399,7 +399,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       assert_program_visible(view, program)
 
       # And: Filter defaults to "all" ("All Programs" filter is marked as active)
-      assert has_element?(view, "[data-filter-id='all'][data-active='true']")
+      assert has_element?(view, "[data-filter='all'][data-active='true']")
 
       # And: No error message is shown
       refute has_element?(view, ".flash-error")
@@ -443,8 +443,8 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # The search doesn't match "Normal Program", so empty state is shown
       assert html =~ "No programs found"
 
-      # And: Search still functions (query was truncated but search works)
-      assert has_element?(view, "#programs")
+      # And: Search still functions — empty-state container renders for the no-match query.
+      assert has_element?(view, "#mk-empty")
 
       # And: No error is shown
       refute has_element?(view, ".flash-error")
@@ -501,7 +501,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       refute_program_visible(view, art)
 
       # And: Filter defaults to "all" (UI shows all filter active)
-      assert has_element?(view, "[data-filter-id='all'][data-active='true']")
+      assert has_element?(view, "[data-filter='all'][data-active='true']")
 
       # And: Search is applied correctly (only soccer program shown)
     end
@@ -578,7 +578,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
 
       # Then: Load More button is visible
       assert has_element?(view, "button[phx-click='load_more']")
-      assert view |> element("button[phx-click='load_more']") |> render() =~ "Load More Programs"
+      assert view |> element("button[phx-click='load_more']") |> render() =~ "Load more programs"
     end
 
     # T095: "Load More button hidden when has_more is false"
@@ -722,7 +722,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
 
       # Then: Load More button is enabled
       assert view |> element("button[phx-click='load_more']") |> render() =~
-               "Load More Programs"
+               "Load more programs"
 
       refute view |> element("button[phx-click='load_more'][disabled]") |> has_element?()
 
@@ -820,5 +820,127 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
   # Helper: Refute program is visible
   defp refute_program_visible(view, program) do
     refute has_element?(view, "[data-program-id='#{program.id}']")
+  end
+
+  describe "ProgramsLive - bundle parity surfaces (Phase 1)" do
+    test "renders all 8 bundle category pills", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      for label <- ~w(All Sports Arts Music Education) ++ ["Life Skills", "Camps", "Workshops"] do
+        assert has_element?(view, "button", label),
+               "expected category pill #{inspect(label)} to render"
+      end
+    end
+
+    test "renders the sort dropdown and view toggle controls", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      assert has_element?(view, "#mk-sort-dropdown")
+      assert has_element?(view, "#mk-sort-dropdown summary", "Recommended")
+      assert has_element?(view, "#mk-view-toggle [data-view='grid'][data-active='true']")
+      assert has_element?(view, "#mk-view-toggle [data-view='list']")
+    end
+
+    test "shows the empty state when no programs match", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/programs?q=zzz_no_match_zzz")
+
+      assert has_element?(view, "#mk-empty")
+      assert render(view) =~ "No programs found"
+    end
+  end
+
+  describe "ProgramsLive - sort + view-mode controls" do
+    test "selecting a sort option pushes ?sort= to the URL", %{conn: conn} do
+      _ = insert_program(%{title: "Cheap", price: Decimal.new("10.00")})
+      _ = insert_program(%{title: "Pricey", price: Decimal.new("200.00")})
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      view
+      |> element("[phx-click][data-sort='price_low']")
+      |> render_click()
+
+      assert_patch(view, ~p"/programs?sort=price_low")
+    end
+
+    test "sort=newest sanitizes unknown values to recommended", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/programs?sort=garbage")
+
+      assert has_element?(view, "#mk-sort-dropdown summary", "Recommended")
+    end
+
+    test "load-more button hides when sort != recommended", %{conn: conn} do
+      base_time = DateTime.utc_now()
+
+      for i <- 1..25 do
+        insert_program(%{
+          title: "Program #{i}",
+          inserted_at: DateTime.add(base_time, i * 1000, :second)
+        })
+      end
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+      assert has_element?(view, "button[phx-click='load_more']")
+
+      {:ok, sorted_view, _html} = live(conn, ~p"/programs?sort=newest")
+      refute has_element?(sorted_view, "button[phx-click='load_more']")
+    end
+
+    test "toggle_view flips the view_mode and updates data-view on the stream container",
+         %{conn: conn} do
+      _ = insert_program(%{title: "Listed Program"})
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+      assert has_element?(view, "#mk-programs-stream[data-view='grid']")
+
+      view
+      |> element("[phx-click='toggle_view'][phx-value-view='list']")
+      |> render_click()
+
+      assert has_element?(view, "#mk-programs-stream[data-view='list']")
+    end
+
+    test "toggle_view preserves entries appended via load_more (no page-1 reset)",
+         %{conn: conn} do
+      base_time = DateTime.utc_now()
+
+      for i <- 1..25 do
+        insert_program(%{
+          title: "Pagination Program #{i}",
+          inserted_at: DateTime.add(base_time, i * 1000, :second)
+        })
+      end
+
+      first_page_program = Repo.get_by!(ProgramListingSchema, title: "Pagination Program 25")
+      second_page_program = Repo.get_by!(ProgramListingSchema, title: "Pagination Program 1")
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+      assert_program_visible(view, first_page_program)
+      refute_program_visible(view, second_page_program)
+
+      view |> element("button[phx-click='load_more']") |> render_click()
+      assert_program_visible(view, first_page_program)
+      assert_program_visible(view, second_page_program)
+
+      view
+      |> element("[phx-click='toggle_view'][phx-value-view='list']")
+      |> render_click()
+
+      # Both pages must remain after the view toggle re-streams from cache.
+      assert_program_visible(view, first_page_program)
+      assert_program_visible(view, second_page_program)
+    end
+
+    test "search query 'all' is preserved in URL (per-key sentinel filter)",
+         %{conn: conn} do
+      _ = insert_program(%{title: "Whatever"})
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      view
+      |> element("input[name='search']")
+      |> render_change(%{"search" => "all"})
+
+      assert_patch(view, ~p"/programs?q=all")
+    end
   end
 end

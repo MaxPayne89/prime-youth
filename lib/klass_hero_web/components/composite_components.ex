@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     router: KlassHeroWeb.Router,
     statics: KlassHeroWeb.static_paths()
 
+  import KlassHeroWeb.MarketingComponents, only: [mk_page_hero: 1, mk_cta_section: 1]
   import KlassHeroWeb.UIComponents
   import Phoenix.HTML, only: [raw: 1]
 
@@ -206,147 +207,6 @@ defmodule KlassHeroWeb.CompositeComponents do
       <p class="text-center text-white font-medium">
         {@goal.message}
       </p>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a single achievement badge with emoji icon and date.
-
-  ## Examples
-
-      <.achievement_badge
-        achievement=%{emoji: "🌍", name: "Activity Explorer", date: "2023-11-15"}
-      />
-  """
-  attr :achievement, :map, required: true
-  attr :class, :string, default: nil
-
-  def achievement_badge(assigns) do
-    ~H"""
-    <div class={[
-      "bg-white p-4 shadow-sm border border-hero-grey-200",
-      Theme.rounded(:xl),
-      "hover:shadow-md hover:scale-[1.02]",
-      Theme.transition(:normal),
-      "text-center",
-      @class
-    ]}>
-      <div class="text-4xl mb-2">{@achievement.emoji}</div>
-      <h4 class={[Theme.typography(:card_title), "text-hero-black mb-1"]}>
-        {@achievement.name}
-      </h4>
-      <p class="text-xs text-hero-grey-400">{@achievement.date}</p>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a family achievements section with responsive grid of badges.
-
-  ## Examples
-
-      <.family_achievements
-        achievements={[
-          %{emoji: "🌍", name: "Activity Explorer", date: "2023-11-15"},
-          %{emoji: "⭐", name: "Super Reviewer", date: "2024-01-20"}
-        ]}
-      />
-  """
-  attr :achievements, :list, required: true
-  attr :class, :string, default: nil
-
-  def family_achievements(assigns) do
-    ~H"""
-    <div class={@class}>
-      <div class="flex items-center gap-2 mb-4">
-        <.icon name="hero-trophy-mini" class="w-6 h-6 text-hero-yellow" />
-        <h2 class="text-xl font-semibold text-hero-charcoal">
-          {gettext("Family Achievements")}
-        </h2>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <.achievement_badge :for={achievement <- @achievements} achievement={achievement} />
-      </div>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a referral card with dark background, stats, and referral code.
-
-  ## Examples
-
-      <.referral_card
-        referral_stats=%{count: 3, points: 600, code: "SARAH-BERLIN-24"}
-      />
-  """
-  attr :referral_stats, :map, required: true
-  attr :class, :string, default: nil
-
-  def referral_card(assigns) do
-    ~H"""
-    <div class={[
-      "bg-hero-black text-white p-6",
-      Theme.rounded(:xl),
-      "shadow-lg",
-      @class
-    ]}>
-      <div class="flex items-center gap-2 mb-4">
-        <.icon name="hero-user-group-mini" class="w-6 h-6 text-hero-cyan" />
-        <h2 class="text-xl font-semibold">
-          {gettext("Refer & Earn")}
-        </h2>
-      </div>
-
-      <p class="text-hero-grey-300 mb-6">
-        {gettext("Invite friends and earn points!")}
-      </p>
-
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-white/10 p-4 rounded-lg text-center">
-          <div class="text-3xl font-bold text-hero-cyan">{@referral_stats.count}</div>
-          <div class="text-sm text-hero-grey-300">{gettext("Friends Referred")}</div>
-        </div>
-        <div class="bg-white/10 p-4 rounded-lg text-center">
-          <div class="text-3xl font-bold text-hero-yellow">{@referral_stats.points}</div>
-          <div class="text-sm text-hero-grey-300">{gettext("Points Earned")}</div>
-        </div>
-      </div>
-
-      <div class="mb-6">
-        <h3 class="text-sm font-semibold mb-2">{gettext("Your Referral Code")}</h3>
-        <div class="flex gap-2">
-          <div class="flex-1 bg-white/10 p-3 rounded-lg font-mono text-hero-cyan">
-            {@referral_stats.code}
-          </div>
-          <button
-            type="button"
-            phx-click="copy_referral_code"
-            class={[
-              "px-4 py-3 bg-white/10 hover:bg-white/20",
-              Theme.rounded(:lg),
-              Theme.transition(:normal)
-            ]}
-            title={gettext("Copy Code")}
-          >
-            <.icon name="hero-clipboard-mini" class="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        phx-click="share_referral_code"
-        class={[
-          "w-full py-3 bg-hero-cyan hover:bg-hero-cyan-dark text-white font-semibold",
-          Theme.rounded(:lg),
-          Theme.transition(:normal)
-        ]}
-      >
-        {gettext("Share Code")}
-      </button>
     </div>
     """
   end
@@ -608,6 +468,11 @@ defmodule KlassHeroWeb.CompositeComponents do
               <.link navigate={~p"/contact"} class="link link-hover">{gettext("Contact")}</.link>
             </li>
             <li>
+              <.link navigate={~p"/for-providers"} class="link link-hover">
+                {gettext("For Providers")}
+              </.link>
+            </li>
+            <li>
               <.link navigate={~p"/trust-safety"} class="link link-hover">
                 {gettext("Trust & Safety")}
               </.link>
@@ -699,7 +564,7 @@ defmodule KlassHeroWeb.CompositeComponents do
   ## Examples
 
       <.document_page
-        gradient_class={Theme.gradient(:primary)}
+        eyebrow_pill={gettext("Legal")}
         title={gettext("Terms of Service")}
         subtitle={gettext("Understanding our agreement with you")}
         last_updated="December 12, 2025"
@@ -708,10 +573,13 @@ defmodule KlassHeroWeb.CompositeComponents do
         cta_body={gettext("We're here to clarify any questions you may have.")}
       />
   """
-  attr :gradient_class, :string, required: true, doc: "Hero section gradient class"
   attr :title, :string, required: true, doc: "Page title (already translated)"
   attr :subtitle, :string, required: true, doc: "Page subtitle (already translated)"
   attr :last_updated, :string, required: true, doc: "Last updated date string"
+
+  attr :eyebrow_pill, :string,
+    default: nil,
+    doc: "Optional outline pill rendered above the title in the marketing hero"
 
   attr :sections, :list,
     required: true,
@@ -722,96 +590,68 @@ defmodule KlassHeroWeb.CompositeComponents do
 
   def document_page(assigns) do
     ~H"""
-    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <.hero_section
-        variant="page"
-        gradient_class={@gradient_class}
-        show_back_button
-      >
-        <:title>{@title}</:title>
-        <:subtitle>{@subtitle}</:subtitle>
-      </.hero_section>
+    <.mk_page_hero eyebrow_icon="hero-document-text" pill={@eyebrow_pill}>
+      <:title>{@title}</:title>
+      <:lede>{@subtitle}</:lede>
+    </.mk_page_hero>
 
-      <div class="max-w-4xl mx-auto p-6 space-y-6">
-        <%!-- Last Updated Banner --%>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p class="text-sm text-blue-800">
-            <span class="font-semibold">{gettext("Last Updated:")}</span> {@last_updated}
-          </p>
-        </div>
-
-        <%!-- Table of Contents Card --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Table of Contents")}
-            </h2>
-          </:header>
-          <:body>
-            <ul class="space-y-2">
-              <li :for={section <- @sections}>
-                <a
-                  href={"##{section.id}"}
-                  class="text-blue-600 hover:underline flex items-center gap-2"
-                >
-                  <.icon name={section.icon} class="w-4 h-4" />
-                  {section.title}
-                </a>
-              </li>
-            </ul>
-          </:body>
-        </.card>
-
-        <%!-- Document Sections --%>
-        <.card :for={section <- @sections} id={section.id}>
-          <:header>
-            <div class="flex items-center gap-3">
-              <.gradient_icon
-                gradient_class={section.gradient}
-                size="sm"
-                shape="circle"
-              >
-                <.icon name={section.icon} class="w-5 h-5 text-white" />
-              </.gradient_icon>
-              <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-                {section.title}
-              </h2>
-            </div>
-          </:header>
-          <:body>
-            <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
-              {raw(section.content)}
-            </div>
-          </:body>
-        </.card>
-
-        <%!-- Contact CTA Section --%>
-        <.card padding="p-8">
-          <:body>
-            <div class="text-center">
-              <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
-                {@cta_title}
-              </h3>
-              <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
-                {@cta_body}
-              </p>
-              <.link
-                navigate={~p"/contact"}
-                class={[
-                  "inline-block",
-                  Theme.gradient(:primary),
-                  "text-white px-6 py-2 text-sm font-semibold hover:shadow-lg transform hover:scale-[1.02]",
-                  Theme.transition(:normal),
-                  Theme.rounded(:lg)
-                ]}
-              >
-                {gettext("Contact Us")}
-              </.link>
-            </div>
-          </:body>
-        </.card>
+    <div class="max-w-4xl mx-auto p-6 space-y-6">
+      <%!-- Last Updated Banner --%>
+      <div class="bg-hero-blue-50 border border-hero-blue-200 rounded-lg p-4">
+        <p class="text-sm text-hero-blue-800">
+          <span class="font-semibold">{gettext("Last Updated:")}</span> {@last_updated}
+        </p>
       </div>
+
+      <%!-- Table of Contents Card --%>
+      <.card>
+        <:header>
+          <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+            {gettext("Table of Contents")}
+          </h2>
+        </:header>
+        <:body>
+          <ul class="space-y-2">
+            <li :for={section <- @sections}>
+              <a
+                href={"##{section.id}"}
+                class="text-hero-blue-600 hover:underline flex items-center gap-2"
+              >
+                <.icon name={section.icon} class="w-4 h-4" />
+                {section.title}
+              </a>
+            </li>
+          </ul>
+        </:body>
+      </.card>
+
+      <%!-- Document Sections --%>
+      <.card :for={section <- @sections} id={section.id}>
+        <:header>
+          <div class="flex items-center gap-3">
+            <.gradient_icon gradient_class={section.gradient} size="sm" shape="circle">
+              <.icon name={section.icon} class="w-5 h-5 text-white" />
+            </.gradient_icon>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              {section.title}
+            </h2>
+          </div>
+        </:header>
+        <:body>
+          <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
+            {raw(section.content)}
+          </div>
+        </:body>
+      </.card>
     </div>
+
+    <.mk_cta_section title={@cta_title} lede={@cta_body}>
+      <:cta>
+        <.link navigate={~p"/contact"}>
+          <.kh_button variant={:primary} size={:lg}>{gettext("Contact Us")}</.kh_button>
+        </.link>
+      </:cta>
+    </.mk_cta_section>
     """
   end
 

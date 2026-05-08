@@ -69,5 +69,12 @@ defmodule KlassHeroWeb.SettingsLiveTest do
 
       assert_redirect(view, ~p"/settings/children")
     end
+
+    test "highlights the Settings sidebar entry, not 'My Kids'", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/settings")
+
+      assert has_element?(view, "a[href='/family/settings'][aria-current='page']", "Settings")
+      refute has_element?(view, "a[href='/family/settings/children'][aria-current='page']")
+    end
   end
 end

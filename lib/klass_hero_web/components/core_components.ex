@@ -181,6 +181,14 @@ defmodule KlassHeroWeb.CoreComponents do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
 
+  attr :pill, :boolean,
+    default: false,
+    doc: "Renders the input with rounded-full corners (matches KhInput pill variant)"
+
+  attr :icon, :string,
+    default: nil,
+    doc: "Heroicon name rendered inside the input on the leading edge"
+
   attr :rest, :global, include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
@@ -281,35 +289,34 @@ defmodule KlassHeroWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={
-          [
-            # Base styles - increased spacing and text
-            "mt-2 block w-full rounded-lg text-hero-black sm:text-sm sm:leading-6",
-            # Solid background for contrast
+      <div class="relative">
+        <div
+          :if={@icon}
+          class="absolute left-3.5 top-1/2 -translate-y-1/2 text-hero-grey-600 pointer-events-none"
+        >
+          <.icon name={@icon} class="w-4 h-4" />
+        </div>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            "mt-2 block w-full text-hero-black sm:text-sm sm:leading-6",
+            if(@pill, do: "rounded-full", else: "rounded-lg"),
+            if(@icon, do: "pl-10", else: nil),
             "bg-white/90 backdrop-blur-sm",
-            # Thicker, darker borders for visibility
             "border-2",
-            # Default state - visible dark border
             "phx-no-feedback:border-hero-grey-300 phx-no-feedback:focus:border-hero-blue-500",
-            # Valid state - darker border with hero-blue accent on focus
             @errors == [] && "border-hero-grey-300 focus:border-hero-blue-500",
-            # Error state - red border
             @errors != [] && "border-rose-500 focus:border-rose-600",
-            # Add subtle shadow for depth
             "shadow-sm focus:shadow-md",
-            # Smooth transitions
             "transition-all duration-200",
-            # Enhanced focus ring
             "focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0"
-          ]
-        }
-        {@rest}
-      />
+          ]}
+          {@rest}
+        />
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """

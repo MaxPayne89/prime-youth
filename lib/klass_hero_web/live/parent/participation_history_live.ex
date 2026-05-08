@@ -15,6 +15,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     socket =
       socket
       |> assign(:page_title, gettext("Participation History"))
+      |> assign(:active_nav, :participation)
       |> assign(:parent_id, parent_id)
       |> assign(:child_names_map, %{})
       |> assign(:children_ids, MapSet.new())

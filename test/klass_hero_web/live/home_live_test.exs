@@ -9,14 +9,43 @@ defmodule KlassHeroWeb.HomeLiveTest do
     test "renders hero section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "h1", "Heroes for Our Youth")
+      assert has_element?(view, "h1", "Trusted Heroes")
+      assert has_element?(view, "h1", "for Our Youth")
+    end
+
+    test "renders sections in the design-handoff Mk* order", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/")
+
+      # Bundle order (design_handoff/marketing/Sections.jsx): Hero → Featured →
+      # Features (Why Klass Hero) → Provider CTA → Founder → FAQ. Pricing is
+      # intentionally skipped — gated on transactions (#178).
+      ids_in_order = [
+        ~s|id="mk-hero"|,
+        ~s|id="mk-featured"|,
+        ~s|id="mk-features"|,
+        ~s|id="mk-provider-cta"|,
+        ~s|id="mk-founder"|,
+        ~s|id="mk-faq"|
+      ]
+
+      positions =
+        Enum.map(ids_in_order, fn marker ->
+          assert html =~ marker, "expected #{marker} to render"
+          html |> String.split(marker) |> hd() |> String.length()
+        end)
+
+      assert positions == Enum.sort(positions),
+             "section ids appeared out of order: #{inspect(Enum.zip(ids_in_order, positions))}"
+
+      refute html =~ ~s|id="pricing-section"|,
+             "pricing section is hidden until #178 lands; remove the HEEx comment in home_live.ex when re-enabling"
     end
 
     test "renders search bar in hero section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "input[placeholder='Search for programs...']")
-      assert has_element?(view, "button", "Search")
+      assert has_element?(view, "input[placeholder='Search: coding, football, art...']")
+      assert has_element?(view, "button", "Find Programs")
     end
 
     test "renders trending tags", %{conn: conn} do
@@ -73,29 +102,30 @@ defmodule KlassHeroWeb.HomeLiveTest do
     test "renders featured programs section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "#featured-programs-section")
-      assert has_element?(view, "h2", "Featured Programs")
-      assert has_element?(view, "#featured-programs")
+      assert has_element?(view, "#mk-featured")
+      assert has_element?(view, "h2", "Afterschool Adventures Await")
+      assert has_element?(view, "#mk-featured-grid")
     end
 
-    test "renders featured programs with stream", %{conn: conn} do
+    test "renders featured programs stream container", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Verify the stream container exists with proper attributes
-      assert has_element?(view, "#featured-programs[phx-update='stream']")
+      # Stream container has phx-update="stream" attribute
+      assert has_element?(view, "#mk-featured-grid[phx-update='stream']")
     end
 
-    test "renders view all programs button", %{conn: conn} do
+    test "renders view all programs link in featured section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "button", "View All Programs")
+      # In the new design this is a navigate link, not a button.
+      assert has_element?(view, "#mk-featured a[href='/programs']")
     end
 
     test "renders why klass hero section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "#why-klass-hero-section")
-      assert has_element?(view, "h2", "Why Klass Hero?")
+      assert has_element?(view, "#mk-features")
+      assert has_element?(view, "h2", "Everything parents need, nothing they don't")
     end
 
     test "renders why klass hero feature cards", %{conn: conn} do
@@ -106,256 +136,78 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h3", "Community Focused")
     end
 
-    test "navigates to programs page on explore click", %{conn: conn} do
+    test "renders provider CTA section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Trigger the explore_programs event
-      assert view
-             |> element("button", "View All Programs")
-             |> render_click()
-
-      # Verify navigation occurred
-      assert_redirect(view, ~p"/programs")
-    end
-
-    test "renders grow your passion business section", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      assert has_element?(view, "#grow-passion-business-section")
-      assert has_element?(view, "h2", "How to Grow Your Youth Program: Let's Build Together.")
+      assert has_element?(view, "#mk-provider-cta")
+      assert has_element?(view, "h2", "How to Grow Your Youth Program")
       assert has_element?(view, "button", "Start Teaching Today")
 
-      # Verify 3 step cards
-      assert has_element?(view, "h3", "Create a Program")
-      assert has_element?(view, "h3", "Deliver Quality")
-      assert has_element?(view, "h3", "Get Paid & Grow")
-    end
-
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "renders pricing section with family plans by default", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      assert has_element?(view, "#pricing-section")
-      assert has_element?(view, "h2", "Simple, Transparent Pricing")
-
-      # Verify family plans are visible
-      assert has_element?(view, "h3", "Explorer Family")
-      assert has_element?(view, "h3", "Active Family")
-    end
-
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "switches to provider pricing tab", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Click provider tab
-      view
-      |> element("button", "For Providers")
-      |> render_click()
-
-      # Verify provider plans are now visible
-      assert has_element?(view, "h3", "Starter Provider")
-      assert has_element?(view, "h3", "Pro Provider")
-    end
-
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "switches back to family pricing tab", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Click provider tab first
-      view
-      |> element("button", "For Providers")
-      |> render_click()
-
-      # Click family tab
-      view
-      |> element("button", "For Families")
-      |> render_click()
-
-      # Verify family plans are visible again
-      assert has_element?(view, "h3", "Explorer Family")
-      assert has_element?(view, "h3", "Active Family")
+      # Three numbered step cards.
+      assert has_element?(view, "h4", "List Your Program")
+      assert has_element?(view, "h4", "Get Bookings")
+      assert has_element?(view, "h4", "Get Paid & Grow")
     end
 
     test "renders founder section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "#founder-section")
+      assert has_element?(view, "#mk-founder")
       assert has_element?(view, "h2", "Built by Parents to Empower Educators.")
-      assert has_element?(view, "#founder-section a[href='/about']", "Read our founding story")
+      assert has_element?(view, "#mk-founder a[href='/about']")
     end
 
-    test "renders faq section", %{conn: conn} do
+    test "renders faq section with all 9 questions", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "#faq-section")
-      assert has_element?(view, "h2", "Frequently Asked Questions")
+      assert has_element?(view, "#mk-faq")
 
-      # Verify all 12 FAQ questions exist (updated per issue #312)
-      assert has_element?(view, "button", "How does the 6-step provider vetting process work?")
+      # FAQ items render as native <details> with <summary> headers — verify
+      # all 9 question strings appear inside summary elements.
+      questions = [
+        "How does the 6-step provider vetting process work?",
+        "Can I list my programs on Klass Hero and what does it cost?",
+        "How does the booking system work?",
+        "Is Klass Hero free for parents to use?",
+        "Do I need an account to book?",
+        "Can I change my booking date?",
+        "What if my child gets sick?",
+        "Where is Klass Hero available?",
+        "Can I buy a gift voucher?"
+      ]
 
-      assert has_element?(
-               view,
-               "button",
-               "Can I list my programs on Klass Hero and what does it cost?"
-             )
-
-      assert has_element?(view, "button", "How does the booking system work?")
-      assert has_element?(view, "button", "What happens if a parent cancels or I need to cancel?")
-      assert has_element?(view, "button", "Is Klass Hero free for parents to use?")
-      assert has_element?(view, "button", "Do I need an account to book?")
-      assert has_element?(view, "button", "Can I change my booking date?")
-      assert has_element?(view, "button", "What if my child gets sick?")
-      assert has_element?(view, "button", "Can I get a refund if the provider cancels?")
-      assert has_element?(view, "button", "What if the provider doesn't show up?")
-      assert has_element?(view, "button", "Where is Klass Hero available?")
-      assert has_element?(view, "button", "Can I buy a gift voucher?")
+      for q <- questions do
+        assert has_element?(view, "summary", q), "expected FAQ summary: #{q}"
+      end
     end
 
-    test "faq items have correct structure for client-side toggle", %{conn: conn} do
+    test "faq items have stable ids 1..9", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Verify FAQ items have unique IDs for answer and chevron elements
-      # Note: The button itself doesn't have an ID, only the chevron and answer divs
-      assert has_element?(view, "#faq-1-answer")
-      assert has_element?(view, "#faq-1-chevron")
-
-      assert has_element?(view, "#faq-2-answer")
-      assert has_element?(view, "#faq-2-chevron")
-
-      assert has_element?(view, "#faq-3-answer")
-      assert has_element?(view, "#faq-3-chevron")
-
-      assert has_element?(view, "#faq-4-answer")
-      assert has_element?(view, "#faq-4-chevron")
-
-      assert has_element?(view, "#faq-5-answer")
-      assert has_element?(view, "#faq-5-chevron")
-
-      assert has_element?(view, "#faq-6-answer")
-      assert has_element?(view, "#faq-6-chevron")
-
-      assert has_element?(view, "#faq-7-answer")
-      assert has_element?(view, "#faq-7-chevron")
-
-      assert has_element?(view, "#faq-8-answer")
-      assert has_element?(view, "#faq-8-chevron")
-
-      assert has_element?(view, "#faq-9-answer")
-      assert has_element?(view, "#faq-9-chevron")
-
-      assert has_element?(view, "#faq-10-answer")
-      assert has_element?(view, "#faq-10-chevron")
-
-      assert has_element?(view, "#faq-11-answer")
-      assert has_element?(view, "#faq-11-chevron")
-
-      assert has_element?(view, "#faq-12-answer")
-      assert has_element?(view, "#faq-12-chevron")
+      for n <- 1..9 do
+        assert has_element?(view, "details#faq-#{n}"), "expected #faq-#{n} <details>"
+      end
     end
 
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "family pricing cards show all expected features", %{conn: conn} do
+    test "renders marketing header chrome", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Explorer Family features
-      assert has_element?(view, "li", "Browse all programs")
-      assert has_element?(view, "li", "Book up to 2 activities per month")
-      assert has_element?(view, "li", "Read and write reviews")
-      assert has_element?(view, "li", "Join the community")
-
-      # Active Family features
-      assert has_element?(view, "li", "AI Support Bot for recommendations")
-      assert has_element?(view, "li", "Unlimited bookings")
-      assert has_element?(view, "li", "Progress tracking dashboard")
-      assert has_element?(view, "li", "Direct messaging with providers")
-      assert has_element?(view, "li", "1 free cancellation per month")
+      # Sticky horizontal nav rendered by mk_header in the marketing layout.
+      assert has_element?(view, "header nav a", "Programs")
+      assert has_element?(view, "header nav a", "For Providers")
+      assert has_element?(view, "header nav a", "Trust & Safety")
+      assert has_element?(view, "header nav a", "About")
+      assert has_element?(view, "header nav a", "Contact")
     end
 
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "provider pricing cards show all expected features", %{conn: conn} do
+    test "renders marketing footer with legal links", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Switch to provider tab
-      view
-      |> element("button", "For Providers")
-      |> render_click()
-
-      # Starter Provider features
-      assert has_element?(view, "li", "Basic profile page")
-      assert has_element?(view, "li", "List up to 3 programs")
-      assert has_element?(view, "li", "Accept bookings")
-      assert has_element?(view, "li", "Basic analytics")
-
-      # Pro Provider features
-      assert has_element?(view, "li", "Unlimited program listings")
-      assert has_element?(view, "li", "Advanced analytics dashboard")
-      assert has_element?(view, "li", "Priority customer support")
-      assert has_element?(view, "li", "Featured placement opportunities")
-    end
-
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "pricing tab defaults to families on mount", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Verify families tab is active (has gradient styling)
-      # We check for the presence of family plans
-      assert has_element?(view, "h3", "Explorer Family")
-      assert has_element?(view, "h3", "Active Family")
-      refute has_element?(view, "h3", "Starter Provider")
-      refute has_element?(view, "h3", "Pro Provider")
-    end
-
-    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
-    test "pricing tab assign updates when switching tabs", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Initial state: families
-      assert has_element?(view, "h3", "Explorer Family")
-
-      # Click provider tab
-      view
-      |> element("button", "For Providers")
-      |> render_click()
-
-      # Verify provider plans now visible
-      assert has_element?(view, "h3", "Starter Provider")
-      assert has_element?(view, "h3", "Pro Provider")
-      refute has_element?(view, "h3", "Explorer Family")
-
-      # Click families tab again
-      view
-      |> element("button", "For Families")
-      |> render_click()
-
-      # Verify family plans back
-      assert has_element?(view, "h3", "Explorer Family")
-      assert has_element?(view, "h3", "Active Family")
-      refute has_element?(view, "h3", "Starter Provider")
-    end
-
-    test "featured programs stream container is properly configured", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Section heading renders
-      assert has_element?(view, "#featured-programs-section")
-      assert has_element?(view, "h2", "Featured Programs")
-
-      # Stream container exists with correct phx-update attribute
-      assert has_element?(view, "#featured-programs[phx-update='stream']")
-
-      # Verify stream is used for rendering programs
-      # The :for comprehension in the template uses @streams.featured_programs
-      # We can verify the stream is working by checking for the grid container
-      html = render(view)
-      assert html =~ ~r/id="featured-programs"/
-      assert html =~ ~r/phx-update="stream"/
-
-      # View All Programs button present
-      assert has_element?(view, "button", "View All Programs")
+      assert has_element?(view, "footer a", "Privacy")
+      assert has_element?(view, "footer a", "Terms")
     end
 
     test "clicking featured program card navigates to program detail", %{conn: conn} do
-      # Insert a program listing into the read model (featured programs read from program_listings)
       now = DateTime.truncate(DateTime.utc_now(), :second)
       program_id = Ecto.UUID.generate()
 
@@ -378,12 +230,10 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/")
 
-      # Click the program card with the program-id attribute
       view
       |> element("[phx-click='view_program'][phx-value-program-id='#{program_id}']")
       |> render_click()
 
-      # Should redirect to program detail page
       assert_redirect(view, ~p"/programs/#{program_id}")
     end
   end

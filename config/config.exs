@@ -79,6 +79,10 @@ config :backpex,
   translator_function: {KlassHeroWeb.CoreComponents, :translate_backpex},
   error_translator_function: {KlassHeroWeb.CoreComponents, :translate_error}
 
+# Use IANA timezone database (Tzdata) so DateTime.shift_zone!/2 supports
+# Europe/Berlin and other named zones with DST.
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :error_tracker, repo: KlassHero.Repo, otp_app: :klass_hero, enabled: true
 
 # Configure esbuild (the version is required)
@@ -194,7 +198,10 @@ config :klass_hero, :critical_event_handlers, %{
   ]
 }
 
+# Default app timezone — used by Greeting + future per-user-tz extension.
 # Configure Enrollment bounded context
+config :klass_hero, :default_tz, "Europe/Berlin"
+
 config :klass_hero, :enrollment,
   for_managing_enrollments: EnrollmentRepository,
   for_querying_enrollments: EnrollmentRepository,
@@ -371,6 +378,7 @@ config :logger, :default_formatter,
     :current_user_id,
     :live_view,
     :search_query,
+    :sort,
     :result_count,
     :duration_ms,
     :target_ms,

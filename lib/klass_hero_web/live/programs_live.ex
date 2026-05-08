@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.ProgramsLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
   import KlassHeroWeb.ProgramComponents
 
   alias KlassHero.ProgramCatalog
@@ -11,7 +12,8 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   require Logger
 
-  # Private helpers - Static data
+  @valid_sorts ~w(recommended newest price_low price_high)
+
   defp filter_options do
     [
       %{id: "all", label: gettext("All")},
@@ -27,15 +29,16 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    # Initialize socket state - actual program loading happens in handle_params
     socket =
       socket
       |> assign(page_title: gettext("Explore Programs"))
-      |> assign(current_user: nil)
+      |> assign(active_nav: :programs)
       |> assign(search_query: "")
       |> assign(active_filter: "all")
-      |> assign(sort_by: "Recommended")
+      |> assign(sort_by: "recommended")
+      |> assign(view_mode: :grid)
       |> stream(:programs, [])
+      |> assign(loaded_programs: [])
       |> assign(programs_count: 0)
       |> assign(programs_empty?: true)
       |> assign(filters: filter_options())
@@ -52,27 +55,24 @@ defmodule KlassHeroWeb.ProgramsLive do
   def handle_params(params, _uri, socket) do
     search_query = ProgramCatalog.sanitize_query(params["q"])
     active_filter = ProgramCatalog.validate_category_filter(params["filter"])
+    sort_by = sanitize_sort(params["sort"])
 
-    # Load first page of programs using pagination with category filter (always resets to page 1)
-    # Category filtering happens at the database level for consistent pagination
-    # Infrastructure errors will crash and be handled by supervision tree
     {:ok, page_result} =
       ProgramCatalog.list_programs_paginated(socket.assigns.page_size, nil, active_filter)
 
     start_time = System.monotonic_time(:millisecond)
-    # Apply search filter to domain programs BEFORE converting to maps
     filtered_domain = ProgramCatalog.filter_programs(page_result.items, search_query)
-    # Batch-fetch remaining capacities to avoid N+1 queries
-    program_ids = Enum.map(filtered_domain, & &1.id)
+    sorted_domain = apply_sort(filtered_domain, sort_by)
+    program_ids = Enum.map(sorted_domain, & &1.id)
     capacities = ProgramCatalog.remaining_capacities(program_ids)
-    # Convert to maps for UI
-    programs = Enum.map(filtered_domain, &program_to_map(&1, capacities))
+    programs = Enum.map(sorted_domain, &program_to_map(&1, capacities))
     duration_ms = System.monotonic_time(:millisecond) - start_time
 
     Logger.info(
       "[ProgramsLive.handle_params] Filter operation completed",
       search_query: search_query,
       category: active_filter,
+      sort: sort_by,
       result_count: length(programs),
       page_has_more: page_result.has_more,
       duration_ms: duration_ms,
@@ -84,6 +84,7 @@ defmodule KlassHeroWeb.ProgramsLive do
         "[ProgramsLive.handle_params] Filter operation exceeded performance target",
         search_query: search_query,
         category: active_filter,
+        sort: sort_by,
         result_count: length(programs),
         duration_ms: duration_ms,
         target_ms: 150,
@@ -95,16 +96,22 @@ defmodule KlassHeroWeb.ProgramsLive do
       socket
       |> assign(search_query: search_query)
       |> assign(active_filter: active_filter)
+      |> assign(sort_by: sort_by)
       |> assign(next_cursor: page_result.next_cursor)
-      |> assign(has_more: page_result.has_more)
+      # Load-more is only meaningful for the recommended sort — other sorts
+      # operate in-memory on the loaded page, and merging across paginated
+      # batches would visually break the order. Tracked as a follow-up
+      # (pass sort to ProgramCatalog.list_programs_paginated/3).
+      |> assign(has_more: page_result.has_more and sort_by == "recommended")
       |> stream(:programs, programs, reset: true)
+      |> assign(loaded_programs: programs)
+      |> assign(programs_count: length(programs))
       |> assign(:programs_empty?, Enum.empty?(programs))
       |> assign(database_error: false)
 
     {:noreply, socket}
   end
 
-  # Private helper - Read model DTO to UI conversion
   defp program_to_map(%ProgramListing{} = program, capacities) do
     remaining = Map.get(capacities, program.id)
     spots_left = if remaining != :unlimited, do: remaining
@@ -122,7 +129,6 @@ defmodule KlassHeroWeb.ProgramsLive do
       period: program.pricing_period,
       spots_left: spots_left,
       cover_image_url: program.cover_image_url,
-      # Default UI properties (these will come from the database in the future)
       gradient_class: Theme.gradient(:primary),
       icon_name: ProgramPresenter.icon_name(program.category)
     }
@@ -141,19 +147,42 @@ defmodule KlassHeroWeb.ProgramsLive do
   end
 
   @impl true
+  def handle_event("sort_select", %{"sort" => sort_key}, socket) do
+    params = build_query_params(socket.assigns, sort: sort_key)
+    {:noreply, push_patch(socket, to: ~p"/programs?#{params}")}
+  end
+
+  @impl true
+  def handle_event("toggle_view", %{"view" => view}, socket) do
+    view_mode = if view == "list", do: :list, else: :grid
+
+    # Stream entries render-cache by id: switching :view_mode leaves the
+    # existing entry components in place. Re-stream the already-loaded
+    # programs (page 1 + any load_more pages) so view-mode-aware entry
+    # components re-render without a DB round-trip.
+    socket =
+      socket
+      |> assign(view_mode: view_mode)
+      |> stream(:programs, socket.assigns.loaded_programs, reset: true)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("clear_filters", _params, socket) do
+    {:noreply, push_patch(socket, to: ~p"/programs")}
+  end
+
+  @impl true
   def handle_event("load_more", _params, socket) do
-    # Set loading state
     socket = assign(socket, loading_more: true)
 
-    # Load next page using current cursor with category filter
-    # Infrastructure errors will crash and be handled by supervision tree
     case ProgramCatalog.list_programs_paginated(
            socket.assigns.page_size,
            socket.assigns.next_cursor,
            socket.assigns.active_filter
          ) do
       {:ok, page_result} ->
-        # Apply same search filter as current page
         filtered_domain =
           ProgramCatalog.filter_programs(page_result.items, socket.assigns.search_query)
 
@@ -174,6 +203,8 @@ defmodule KlassHeroWeb.ProgramsLive do
           |> assign(next_cursor: page_result.next_cursor)
           |> assign(has_more: page_result.has_more)
           |> assign(loading_more: false)
+          |> assign(loaded_programs: socket.assigns.loaded_programs ++ programs)
+          |> assign(programs_count: socket.assigns.programs_count + length(programs))
           |> stream(:programs, programs)
 
         {:noreply, socket}
@@ -197,7 +228,6 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do
-    # Navigate directly using program ID (no database call needed)
     Logger.info(
       "[ProgramsLive.program_click] Navigating to program detail",
       program_id: program_id,
@@ -207,24 +237,45 @@ defmodule KlassHeroWeb.ProgramsLive do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
   end
 
-  # Private helpers - URL and parameter handling
+  defp sanitize_sort(sort) when sort in @valid_sorts, do: sort
+  defp sanitize_sort(_), do: "recommended"
+
+  defp apply_sort(programs, "newest") do
+    Enum.sort_by(programs, & &1.inserted_at, {:desc, DateTime})
+  end
+
+  defp apply_sort(programs, "price_low") do
+    Enum.sort_by(programs, &price_for_sort/1, :asc)
+  end
+
+  defp apply_sort(programs, "price_high") do
+    Enum.sort_by(programs, &price_for_sort/1, :desc)
+  end
+
+  defp apply_sort(programs, _recommended), do: programs
+
+  defp price_for_sort(%ProgramListing{price: nil}), do: 0
+  defp price_for_sort(%ProgramListing{price: %Decimal{} = d}), do: Decimal.to_float(d)
+  defp price_for_sort(%ProgramListing{price: p}) when is_number(p), do: p
+
   defp build_query_params(assigns, updates) do
-    # Convert keyword list updates to string-keyed map
-    updates_map =
-      updates
-      |> Map.new(fn {k, v} -> {to_string(k), v} end)
+    updates_map = Map.new(updates, fn {k, v} -> {to_string(k), v} end)
 
     %{
       "q" => assigns.search_query,
-      "filter" => assigns.active_filter
+      "filter" => assigns.active_filter,
+      "sort" => assigns.sort_by
     }
     |> Map.merge(updates_map)
-    |> Enum.reject(fn {_k, v} -> v == "" || v == "all" end)
+    |> Enum.reject(fn
+      {_k, ""} -> true
+      {"filter", "all"} -> true
+      {"sort", "recommended"} -> true
+      _ -> false
+    end)
     |> Map.new()
   end
 
-  # Extract user ID from socket for logging context
-  # Returns nil if user is not authenticated
   defp get_user_id(socket) do
     case socket.assigns[:current_scope] do
       %{user: %{id: id}} -> id
@@ -235,101 +286,88 @@ defmodule KlassHeroWeb.ProgramsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-hero-grey-50">
-      <!-- Hero Section -->
-      <.page_header variant={:peach} size={:large} centered container_class="max-w-7xl mx-auto">
-        <:title>{gettext("Explore Programs")}</:title>
-        <:subtitle>{gettext("Discover activities, camps, and classes for your child")}</:subtitle>
+    <.mk_programs_hero
+      search_query={@search_query}
+      active_filter={@active_filter}
+      filters={@filters}
+    />
 
-        <.search_bar
-          id="search-programs"
-          placeholder={gettext("Search programs...")}
-          value={@search_query}
-          name="search"
-          phx-change="search"
-          phx-hook="Debounce"
-          data-debounce="150"
-          class="mb-4"
-        />
-
-        <.filter_pills
-          filters={@filters}
+    <section class="bg-white pb-20">
+      <div class="max-w-7xl mx-auto px-6">
+        <.mk_programs_controls
+          count={@programs_count}
+          search_query={@search_query}
           active_filter={@active_filter}
-          phx-click="filter_select"
-          class="justify-center"
+          filters={@filters}
+          sort={@sort_by}
+          view_mode={@view_mode}
         />
-      </.page_header>
-      
-    <!-- Main Content -->
-      <div class="max-w-7xl mx-auto px-6 py-6">
-        <!-- Controls Row -->
-        <div class="flex justify-end gap-3 mb-6">
-          <.sort_dropdown selected={@sort_by} />
-          <.view_toggle active_view={:grid} />
-        </div>
-        
-    <!-- Programs Grid -->
-        <div
-          id="programs"
-          phx-update="stream"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"
-        >
-          <.program_card
-            :for={{dom_id, program} <- @streams.programs}
-            id={dom_id}
-            data-program-id={program.id}
-            program={program}
-            variant={:detailed}
-            phx-click="program_click"
-            phx-value-program-id={program.id}
-            phx-value-program-title={program.title}
+
+        <%= if @programs_empty? do %>
+          <.mk_empty_state
+            title={gettext("No programs found")}
+            description={
+              gettext("Try adjusting your search or filter criteria — there's plenty more in Berlin.")
+            }
+            clear_event="clear_filters"
           />
-        </div>
-        
-    <!-- Load More Button -->
-        <div :if={@has_more and not @programs_empty?} class="flex justify-center mt-8 mb-6">
+        <% else %>
+          <%!-- Single stream container, layout class swaps on @view_mode. Switching the
+                container id would shed the stream entries (LV tracks children by id within
+                a stable container). The :if branches below render different components per
+                entry but each sets `id={dom_id}`, so stream patching stays consistent. --%>
+          <div
+            id="mk-programs-stream"
+            phx-update="stream"
+            data-view={Atom.to_string(@view_mode)}
+            class={[
+              "mt-8",
+              if(@view_mode == :list,
+                do: "space-y-4",
+                else: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              )
+            ]}
+          >
+            <%= for {dom_id, program} <- @streams.programs do %>
+              <%= if @view_mode == :list do %>
+                <.mk_program_list_row id={dom_id} program={program} />
+              <% else %>
+                <.program_card
+                  id={dom_id}
+                  data-program-id={program.id}
+                  program={program}
+                  variant={:detailed}
+                  phx-click="program_click"
+                  phx-value-program-id={program.id}
+                  phx-value-program-title={program.title}
+                />
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div :if={@has_more and not @programs_empty?} class="flex justify-center mt-12">
           <button
             type="button"
             phx-click="load_more"
             disabled={@loading_more}
-            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-hero-grey-400 disabled:cursor-not-allowed transition-colors"
+            class={
+              [
+                "px-6 py-3 bg-hero-black text-white rounded-xl hover:bg-[var(--brand-primary-dark)] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed",
+                # typography-lint-ignore: load-more CTA mirrors marketing button display style on dark surface
+                "font-display font-bold"
+              ]
+            }
           >
             <%= if @loading_more do %>
-              <span class="flex items-center gap-2">
-                <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                    fill="none"
-                  />
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                {gettext("Loading...")}
-              </span>
+              {gettext("Loading...")}
             <% else %>
-              {gettext("Load More Programs")}
+              {gettext("Load more programs")}
             <% end %>
           </button>
         </div>
-        
-    <!-- Empty State -->
-        <.empty_state
-          :if={@programs_empty?}
-          data-testid="empty-state"
-          icon="hero-magnifying-glass"
-          title={gettext("No programs found")}
-          description={gettext("Try adjusting your search or filter criteria.")}
-        />
       </div>
-    </div>
+    </section>
     """
   end
 end

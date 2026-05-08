@@ -8,6 +8,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
     socket =
       socket
       |> assign(page_title: gettext("Terms of Service"))
+      |> assign(active_nav: :legal)
 
     {:ok, socket}
   end
@@ -103,20 +104,8 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         gradient: Theme.gradient(:safety),
         title: gettext("Cancellation & Refund Policy"),
         content: """
-        <p class="mb-4"><em class="text-amber-600">Note: This is a basic policy template. Specific terms may vary by program and will be provided during enrollment.</em></p>
-        <h4 class="font-semibold text-gray-900 mb-2">User Cancellations:</h4>
-        <ul class="list-disc pl-6 space-y-2 mb-4">
-          <li><strong>Early Cancellation:</strong> Full refund if canceled 7+ days before program start</li>
-          <li><strong>Late Cancellation:</strong> 50% refund if canceled 3-6 days before program start</li>
-          <li><strong>Last Minute:</strong> No refund if canceled less than 3 days before start</li>
-          <li>Refunds are processed within 10 business days</li>
-        </ul>
-        <h4 class="font-semibold text-gray-900 mb-2">Program Cancellations:</h4>
-        <ul class="list-disc pl-6 space-y-2">
-          <li>If Klass Hero or an instructor cancels a program, you will receive a full refund</li>
-          <li>Weather-related cancellations will be rescheduled when possible</li>
-          <li>We will notify you as soon as possible of any cancellations</li>
-        </ul>
+        <p class="mb-4">Cancellation and refund terms are still being finalized. The terms that apply to your enrollment will be presented at booking time and bound to that enrollment — please review them before completing payment.</p>
+        <p>If you have a question about a specific booking or need to cancel one, contact us and the provider; we'll work it out together.</p>
         """
       },
       %{
@@ -264,7 +253,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
   def render(assigns) do
     ~H"""
     <.document_page
-      gradient_class={Theme.gradient(:primary)}
+      eyebrow_pill={gettext("Terms")}
       title={gettext("Terms of Service")}
       subtitle={gettext("Understanding our agreement with you")}
       last_updated={last_updated()}

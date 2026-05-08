@@ -18,16 +18,21 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
     # Use with_child variant to ensure children are displayed on dashboard
     setup :register_and_log_in_user_with_child
 
-    test "displays 'My Children' translation correctly in English", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
+    # Phase 2.1 of the design-handoff migration replaced the "My Children"
+    # heading with the bundle's silent kid_picker. The dashboard's English
+    # surface anchors are now the KPI grid, weekly goal, and upcoming
+    # sessions cards.
+    test "renders the English dashboard surface", %{conn: conn} do
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
 
-      assert_translation(view, "My Children", "en")
+      assert html =~ "Active programs"
+      assert html =~ "Weekly adventure goal"
     end
 
-    test "displays 'Meine Kinder' translation correctly in German", %{conn: conn} do
+    test "renders the dashboard with the German locale set", %{conn: conn} do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
 
-      assert_translation(view, "My Children", "de")
+      assert_locale(view, "de")
     end
 
     test "locale is properly set in view assigns", %{conn: conn} do
@@ -46,7 +51,6 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       # Start on dashboard with German locale (query param sets session)
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
       assert_locale(view, "de")
-      assert_translation(view, "My Children", "de")
 
       # Navigate to programs page - locale should persist from session
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/programs")
@@ -76,7 +80,6 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       # Navigate with German locale
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
       assert_locale(view, "de")
-      assert_translation(view, "My Children", "de")
     end
   end
 
@@ -88,16 +91,15 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, html_en} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
       assert_locale(view, "en")
 
-      # Verify English content exists
-      assert html_en =~ "My Children" || html_en =~ get_translation("My Children", "en")
+      assert html_en =~ "Active programs"
 
       # Switch to German
       {:ok, view, html_de} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
       assert_locale(view, "de")
 
-      # Page structure should remain (streams, cards, layout)
-      assert html_de =~ "id=\"children\""
-      assert html_de =~ "phx-update=\"stream\""
+      # Page structure should remain across locale change.
+      assert html_de =~ ~s|id="dashboard-stats"|
+      assert html_de =~ ~s|id="upcoming-sessions"|
     end
 
     test "switches locale without losing view context", %{conn: conn} do
@@ -109,39 +111,46 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/programs")
       assert_locale(view, "de")
 
-      # Program listing should still be present
+      # Program listing should still be present (post design-system migration:
+      # the catalog stream lives in #mk-programs-stream, or #mk-empty when no
+      # programs match).
       html = render(view)
-      assert html =~ "id=\"programs\""
+      assert html =~ "id=\"mk-programs-stream\"" or html =~ "id=\"mk-empty\""
     end
   end
 
   describe "Navigation Component Translations" do
     setup :register_and_log_in_user
 
+    # Phase 2 of the design-handoff migration moves /dashboard onto the
+    # parent_app sidebar layout. Marketing top-nav (Home / Programs / About
+    # / Contact) lives on the public live_session layout — these tests now
+    # verify the public chrome at /.
     test "navigation items are translated to German", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "de") |> live(~p"/")
 
       # Check for German navigation labels
       assert html =~ get_translation("Home", "de")
       assert html =~ get_translation("Programs", "de")
       assert html =~ get_translation("About", "de")
       assert html =~ get_translation("Contact", "de")
-      assert html =~ get_translation("Dashboard", "de")
+      # Signed-in marketing CTA (replaces three-button cluster with single primary action)
+      assert html =~ get_translation("Go to dashboard", "de")
     end
 
     test "navigation items are in English by default", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/")
 
       # Check for English navigation labels
       assert html =~ "Home"
       assert html =~ "Programs"
       assert html =~ "About"
       assert html =~ "Contact"
-      assert html =~ "Dashboard"
+      assert html =~ "Go to dashboard"
     end
 
     test "language switcher is present in navigation", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/")
 
       # Language switcher should have EN and DE options
       assert html =~ "🇬🇧" || html =~ "EN"
@@ -209,7 +218,8 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/about")
 
       assert_locale(view, "de")
-      assert_translation(view, "OUR MISSION", "de")
+      # Post design-system migration: hero pill replaces the all-caps page title.
+      assert_translation(view, "Our Mission", "de")
     end
 
     test "contact page displays German translations", %{conn: conn} do

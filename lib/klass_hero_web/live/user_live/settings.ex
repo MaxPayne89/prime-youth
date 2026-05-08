@@ -1,486 +1,338 @@
 defmodule KlassHeroWeb.UserLive.Settings do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
+
   alias KlassHero.Accounts
   alias KlassHeroWeb.Helpers.FamilyHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
-  alias KlassHeroWeb.Theme
 
   on_mount {KlassHeroWeb.UserAuth, :require_sudo_mode}
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen", Theme.bg(:muted)]}>
-      <%!-- Page Header --%>
-      <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
-        <:title>{gettext("Account Settings")}</:title>
-        <:subtitle>{gettext("Manage your account and preferences")}</:subtitle>
-      </.page_header>
+    <.mk_page_hero pill={gettext("Account")}>
+      <:title>
+        <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("Account")}</span>
+        {gettext("settings")}
+      </:title>
+      <:lede>{gettext("Manage your account, preferences, and privacy in one place.")}</:lede>
+    </.mk_page_hero>
 
-      <div class="max-w-4xl mx-auto p-4">
-        <div class="lg:flex lg:gap-6">
-          <%!-- Sidebar Navigation (Desktop) --%>
-          <nav class="hidden lg:block lg:w-64 lg:flex-shrink-0">
-            <div class={[
-              Theme.bg(:surface),
-              "shadow-sm border overflow-hidden sticky top-4",
-              Theme.rounded(:xl),
-              Theme.border_color(:light)
-            ]}>
-              <div class={["p-4 border-b", Theme.border_color(:light)]}>
-                <h3 class={["font-semibold text-sm", Theme.text_color(:muted)]}>
-                  {gettext("Quick Navigation")}
-                </h3>
+    <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
+      <div class="max-w-6xl mx-auto lg:flex lg:gap-8 items-start">
+        <%!-- Sticky sidebar nav (desktop) --%>
+        <aside class="hidden lg:block lg:w-60 lg:flex-shrink-0 sticky top-24">
+          <.kh_card class="overflow-hidden">
+            <div class="p-4 border-b border-[var(--border-light)]">
+              <h3 class="font-semibold text-sm text-[var(--fg-muted)]">
+                {gettext("Quick Navigation")}
+              </h3>
+            </div>
+            <nav class="py-2">
+              <.settings_nav_link icon="hero-user-circle" title={gettext("Profile")} href="#profile" />
+              <.settings_nav_link
+                icon="hero-user-group"
+                title={gettext("Children")}
+                navigate={~p"/settings/children"}
+              />
+              <.settings_nav_link
+                icon="hero-shield-check"
+                title={gettext("Security")}
+                href="#security"
+              />
+              <.settings_nav_link
+                icon="hero-globe-alt"
+                title={gettext("Preferences")}
+                href="#preferences"
+              />
+              <.settings_nav_link
+                icon="hero-document-text"
+                title={gettext("Data & privacy")}
+                href="#data-privacy"
+              />
+            </nav>
+          </.kh_card>
+        </aside>
+
+        <div class="flex-1 space-y-6 mt-6 lg:mt-0">
+          <%!-- Profile --%>
+          <.kh_card id="profile" class="p-5">
+            <div class="flex items-center gap-4">
+              <%!-- typography-lint-ignore: avatar initials uses display font as visual emphasis --%>
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-hero-blue-400 to-hero-blue-600 text-white flex items-center justify-center text-xl font-display font-extrabold">
+                {@user_initials}
               </div>
               <div>
-                <.settings_nav_item
-                  icon="hero-user-circle"
-                  icon_bg={Theme.bg(:primary_light)}
-                  icon_color={Theme.text_color(:primary)}
-                  title={gettext("Profile")}
-                  href="#profile"
-                />
-                <.settings_nav_item
-                  icon="hero-user-group"
-                  icon_bg={Theme.bg(:primary_light)}
-                  icon_color={Theme.text_color(:primary)}
-                  title={gettext("Children Profiles")}
-                  navigate={~p"/settings/children"}
-                />
-                <.settings_nav_item
-                  icon="hero-shield-check"
-                  icon_bg={Theme.bg(:secondary_light)}
-                  icon_color={Theme.text_color(:secondary)}
-                  title={gettext("Account Security")}
-                  href="#security"
-                />
-                <.settings_nav_item
-                  icon="hero-globe-alt"
-                  icon_bg={Theme.bg(:accent_light)}
-                  icon_color={Theme.text_color(:accent)}
-                  title={gettext("Preferences")}
-                  href="#preferences"
-                />
-                <.settings_nav_item
-                  icon="hero-document-text"
-                  icon_bg="bg-purple-100"
-                  icon_color="text-purple-600"
-                  title={gettext("Data & Privacy")}
-                  href="#data-privacy"
-                />
-              </div>
-            </div>
-          </nav>
-
-          <%!-- Main Content --%>
-          <div class="flex-1 space-y-6">
-            <%!-- Profile Section --%>
-            <div
-              id="profile"
-              class={[
-                Theme.bg(:surface),
-                "shadow-sm border overflow-hidden",
-                Theme.rounded(:xl),
-                Theme.border_color(:light)
-              ]}
-            >
-              <div class="p-5 flex items-center gap-4">
-                <div class={[
-                  "w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold",
-                  Theme.bg(:primary_light),
-                  Theme.text_color(:primary)
-                ]}>
-                  {@user_initials}
-                </div>
-                <div>
-                  <h2 class={["font-semibold text-lg", Theme.text_color(:heading)]}>
-                    {@current_scope.user.email}
-                  </h2>
-                  <p class={["text-sm", Theme.text_color(:muted)]}>
-                    {gettext("Member since")} {@member_since}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <%!-- Account Security Card --%>
-            <div
-              id="security"
-              class={[
-                Theme.bg(:surface),
-                "shadow-sm border overflow-hidden",
-                Theme.rounded(:xl),
-                Theme.border_color(:light)
-              ]}
-            >
-              <div class={["p-5 border-b", Theme.border_color(:light)]}>
-                <div class="flex items-center gap-3">
-                  <.gradient_icon
-                    gradient_class={Theme.bg(:secondary_light)}
-                    size="sm"
-                    shape="circle"
-                  >
-                    <.icon
-                      name="hero-shield-check"
-                      class={"w-5 h-5 #{Theme.text_color(:secondary)}"}
-                    />
-                  </.gradient_icon>
-                  <div>
-                    <h2 class={["font-semibold", Theme.text_color(:heading)]}>
-                      {gettext("Account Security")}
-                    </h2>
-                    <p class={["text-sm", Theme.text_color(:muted)]}>
-                      {gettext("Manage your email and password")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="p-5 space-y-6">
-                <%!-- Email Form --%>
-                <div>
-                  <h3 class={["text-sm font-medium mb-3", Theme.text_color(:heading)]}>
-                    {gettext("Email Address")}
-                  </h3>
-                  <.form
-                    for={@email_form}
-                    id="email_form"
-                    phx-submit="update_email"
-                    phx-change="validate_email"
-                    class="max-w-md"
-                  >
-                    <.input
-                      field={@email_form[:email]}
-                      type="email"
-                      label={gettext("Email")}
-                      autocomplete="username"
-                      required
-                    />
-                    <.button phx-disable-with={gettext("Changing...")}>
-                      {gettext("Change Email")}
-                    </.button>
-                  </.form>
-                </div>
-
-                <div class={["border-t", Theme.border_color(:light)]} />
-
-                <%!-- Password Form --%>
-                <div>
-                  <h3 class={["text-sm font-medium mb-3", Theme.text_color(:heading)]}>
-                    {gettext("Password")}
-                  </h3>
-                  <.form
-                    for={@password_form}
-                    id="password_form"
-                    action={~p"/users/update-password"}
-                    method="post"
-                    phx-change="validate_password"
-                    phx-submit="update_password"
-                    phx-trigger-action={@trigger_submit}
-                    class="max-w-md"
-                  >
-                    <input
-                      name={@password_form[:email].name}
-                      type="hidden"
-                      id="hidden_user_email"
-                      autocomplete="username"
-                      value={@current_email}
-                    />
-                    <.input
-                      field={@password_form[:password]}
-                      type="password"
-                      label={gettext("New password")}
-                      autocomplete="new-password"
-                      required
-                    />
-                    <.input
-                      field={@password_form[:password_confirmation]}
-                      type="password"
-                      label={gettext("Confirm new password")}
-                      autocomplete="new-password"
-                    />
-                    <.button phx-disable-with={gettext("Saving...")}>
-                      {gettext("Save Password")}
-                    </.button>
-                  </.form>
-                </div>
-              </div>
-            </div>
-
-            <%!-- Preferences Card --%>
-            <div
-              id="preferences"
-              class={[
-                Theme.bg(:surface),
-                "shadow-sm border overflow-hidden",
-                Theme.rounded(:xl),
-                Theme.border_color(:light)
-              ]}
-            >
-              <div class={["p-5 border-b", Theme.border_color(:light)]}>
-                <div class="flex items-center gap-3">
-                  <.gradient_icon
-                    gradient_class={Theme.bg(:accent_light)}
-                    size="sm"
-                    shape="circle"
-                  >
-                    <.icon
-                      name="hero-globe-alt"
-                      class={"w-5 h-5 #{Theme.text_color(:accent)}"}
-                    />
-                  </.gradient_icon>
-                  <div>
-                    <h2 class={["font-semibold", Theme.text_color(:heading)]}>
-                      {gettext("Preferences")}
-                    </h2>
-                    <p class={["text-sm", Theme.text_color(:muted)]}>
-                      {gettext("Customize your experience")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="p-5">
-                <h3 class={["text-sm font-medium mb-3", Theme.text_color(:heading)]}>
-                  {gettext("Language Preference")}
-                </h3>
-                <p class={["text-sm mb-4", Theme.text_color(:muted)]}>
-                  {gettext("Choose your preferred language for the interface")}
+                <h2 class="font-bold text-lg text-hero-black">{@current_scope.user.email}</h2>
+                <p class="text-sm text-[var(--fg-muted)]">
+                  {gettext("Member since")} {@member_since}
                 </p>
-                <.form for={@locale_form} id="locale_form" phx-change="update_locale">
-                  <div class="flex flex-wrap gap-3">
-                    <label class={[
-                      "flex items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer",
-                      Theme.transition(:normal),
-                      if(@current_scope.user.locale == "en",
-                        do: [Theme.border_color(:primary), Theme.bg(:primary_light)],
-                        else: [Theme.border_color(:light), "hover:border-hero-grey-300"]
-                      )
-                    ]}>
-                      <input
-                        type="radio"
-                        name="user[locale]"
-                        value="en"
-                        checked={@current_scope.user.locale == "en"}
-                        class="hidden"
-                      />
-                      <span class="text-2xl">🇬🇧</span>
-                      <span class="font-medium">{gettext("English")}</span>
-                    </label>
+              </div>
+            </div>
+          </.kh_card>
 
-                    <label class={[
-                      "flex items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer",
-                      Theme.transition(:normal),
-                      if(@current_scope.user.locale == "de",
-                        do: [Theme.border_color(:primary), Theme.bg(:primary_light)],
-                        else: [Theme.border_color(:light), "hover:border-hero-grey-300"]
-                      )
-                    ]}>
-                      <input
-                        type="radio"
-                        name="user[locale]"
-                        value="de"
-                        checked={@current_scope.user.locale == "de"}
-                        class="hidden"
-                      />
-                      <span class="text-2xl">🇩🇪</span>
-                      <span class="font-medium">{gettext("Deutsch")}</span>
-                    </label>
-                  </div>
+          <%!-- Account Security --%>
+          <.kh_card id="security" class="overflow-hidden">
+            <div class="p-5 border-b border-[var(--border-light)] flex items-center gap-3">
+              <.kh_icon_chip icon="hero-shield-check" gradient={:cool} size={:sm} />
+              <div>
+                <h2 class="font-bold text-hero-black">{gettext("Account Security")}</h2>
+                <p class="text-sm text-[var(--fg-muted)]">
+                  {gettext("Manage your email and password")}
+                </p>
+              </div>
+            </div>
+            <div class="p-5 space-y-6">
+              <div>
+                <h3 class="text-sm font-semibold mb-3 text-hero-black">
+                  {gettext("Email Address")}
+                </h3>
+                <.form
+                  for={@email_form}
+                  id="email_form"
+                  phx-submit="update_email"
+                  phx-change="validate_email"
+                  class="max-w-md space-y-4"
+                >
+                  <.mk_input
+                    field={@email_form[:email]}
+                    type="email"
+                    label={gettext("Email")}
+                    autocomplete="username"
+                    required
+                  />
+                  <.kh_button
+                    type="submit"
+                    variant={:primary}
+                    phx-disable-with={gettext("Changing...")}
+                  >
+                    {gettext("Change Email")}
+                  </.kh_button>
+                </.form>
+              </div>
+
+              <div class="border-t border-[var(--border-light)]" />
+
+              <div>
+                <h3 class="text-sm font-semibold mb-3 text-hero-black">{gettext("Password")}</h3>
+                <.form
+                  for={@password_form}
+                  id="password_form"
+                  action={~p"/users/update-password"}
+                  method="post"
+                  phx-change="validate_password"
+                  phx-submit="update_password"
+                  phx-trigger-action={@trigger_submit}
+                  class="max-w-md space-y-4"
+                >
+                  <input
+                    name={@password_form[:email].name}
+                    type="hidden"
+                    id="hidden_user_email"
+                    autocomplete="username"
+                    value={@current_email}
+                  />
+                  <.mk_input
+                    field={@password_form[:password]}
+                    type="password"
+                    label={gettext("New password")}
+                    autocomplete="new-password"
+                    required
+                  />
+                  <.mk_input
+                    field={@password_form[:password_confirmation]}
+                    type="password"
+                    label={gettext("Confirm new password")}
+                    autocomplete="new-password"
+                  />
+                  <.kh_button type="submit" variant={:primary} phx-disable-with={gettext("Saving...")}>
+                    {gettext("Save Password")}
+                  </.kh_button>
                 </.form>
               </div>
             </div>
+          </.kh_card>
 
-            <%!-- My Family Card --%>
-            <div
-              id="my-family"
-              class={[
-                Theme.bg(:surface),
-                "shadow-sm border overflow-hidden",
-                Theme.rounded(:xl),
-                Theme.border_color(:light)
-              ]}
-            >
-              <div class={["p-5 border-b", Theme.border_color(:light)]}>
-                <div class="flex items-center gap-3">
-                  <.gradient_icon
-                    gradient_class={Theme.bg(:primary_light)}
-                    size="sm"
-                    shape="circle"
-                  >
-                    <.icon
-                      name="hero-user-group"
-                      class={"w-5 h-5 #{Theme.text_color(:primary)}"}
+          <%!-- Preferences --%>
+          <.kh_card id="preferences" class="overflow-hidden">
+            <div class="p-5 border-b border-[var(--border-light)] flex items-center gap-3">
+              <.kh_icon_chip icon="hero-globe-alt" gradient={:art} size={:sm} />
+              <div>
+                <h2 class="font-bold text-hero-black">{gettext("Preferences")}</h2>
+                <p class="text-sm text-[var(--fg-muted)]">{gettext("Customize your experience")}</p>
+              </div>
+            </div>
+            <div class="p-5">
+              <h3 class="text-sm font-semibold mb-3 text-hero-black">
+                {gettext("Language Preference")}
+              </h3>
+              <p class="text-sm mb-4 text-[var(--fg-muted)]">
+                {gettext("Choose your preferred language for the interface")}
+              </p>
+              <.form for={@locale_form} id="locale_form" phx-change="update_locale">
+                <div class="flex flex-wrap gap-3">
+                  <label class={[
+                    "flex items-center gap-2 px-4 py-3 rounded-xl border-2 cursor-pointer transition-colors",
+                    if(@current_scope.user.locale == "en",
+                      do: "border-[var(--brand-primary)] bg-hero-pink-50",
+                      else: "border-[var(--border-light)] hover:border-[var(--border-medium)]"
+                    )
+                  ]}>
+                    <input
+                      type="radio"
+                      name="user[locale]"
+                      value="en"
+                      checked={@current_scope.user.locale == "en"}
+                      class="hidden"
                     />
-                  </.gradient_icon>
+                    <span class="text-2xl">🇬🇧</span>
+                    <span class="font-semibold text-hero-black">{gettext("English")}</span>
+                  </label>
+
+                  <label class={[
+                    "flex items-center gap-2 px-4 py-3 rounded-xl border-2 cursor-pointer transition-colors",
+                    if(@current_scope.user.locale == "de",
+                      do: "border-[var(--brand-primary)] bg-hero-pink-50",
+                      else: "border-[var(--border-light)] hover:border-[var(--border-medium)]"
+                    )
+                  ]}>
+                    <input
+                      type="radio"
+                      name="user[locale]"
+                      value="de"
+                      checked={@current_scope.user.locale == "de"}
+                      class="hidden"
+                    />
+                    <span class="text-2xl">🇩🇪</span>
+                    <span class="font-semibold text-hero-black">{gettext("Deutsch")}</span>
+                  </label>
+                </div>
+              </.form>
+            </div>
+          </.kh_card>
+
+          <%!-- My Family --%>
+          <.kh_card id="my-family" class="overflow-hidden">
+            <div class="p-5 border-b border-[var(--border-light)] flex items-center gap-3">
+              <.kh_icon_chip icon="hero-user-group" gradient={:primary} size={:sm} />
+              <div>
+                <h2 class="font-bold text-hero-black">{gettext("My Family")}</h2>
+                <p class="text-sm text-[var(--fg-muted)]">
+                  {gettext("Manage your children's profiles")}
+                </p>
+              </div>
+            </div>
+            <div class="p-5">
+              <.link
+                navigate={~p"/settings/children"}
+                class="flex items-center justify-between p-4 rounded-xl border border-[var(--border-light)] hover:bg-hero-cream-100 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <.kh_icon_chip icon="hero-user-group" gradient={:primary} size={:sm} />
                   <div>
-                    <h2 class={["font-semibold", Theme.text_color(:heading)]}>
-                      {gettext("My Family")}
-                    </h2>
-                    <p class={["text-sm", Theme.text_color(:muted)]}>
-                      {gettext("Manage your children's profiles")}
-                    </p>
+                    <p class="font-semibold text-hero-black">{gettext("Children Profiles")}</p>
+                    <p class="text-sm text-[var(--fg-muted)]">{@children_summary}</p>
                   </div>
                 </div>
+                <.icon name="hero-chevron-right" class="w-5 h-5 text-[var(--fg-muted)]" />
+              </.link>
+            </div>
+          </.kh_card>
+
+          <%!-- Data & Privacy --%>
+          <.kh_card id="data-privacy" class="overflow-hidden">
+            <div class="p-5 border-b border-[var(--border-light)] flex items-center gap-3">
+              <.kh_icon_chip icon="hero-document-text" gradient={:dark} size={:sm} />
+              <div>
+                <h2 class="font-bold text-hero-black">{gettext("Data & Privacy")}</h2>
+                <p class="text-sm text-[var(--fg-muted)]">
+                  {gettext("Download your data or delete your account")}
+                </p>
               </div>
-              <div class="p-5">
-                <.link
-                  navigate={~p"/settings/children"}
-                  class={[
-                    "flex items-center justify-between p-4 rounded-lg border",
-                    Theme.border_color(:light),
-                    "hover:bg-hero-grey-50",
-                    Theme.transition(:normal)
-                  ]}
-                >
-                  <div class="flex items-center gap-3">
-                    <div class={[
-                      "w-10 h-10 rounded-full flex items-center justify-center",
-                      Theme.bg(:primary_light)
-                    ]}>
-                      <.icon
-                        name="hero-user-group"
-                        class={"w-5 h-5 #{Theme.text_color(:primary)}"}
-                      />
-                    </div>
-                    <div>
-                      <p class={["font-medium", Theme.text_color(:heading)]}>
-                        {gettext("Children Profiles")}
-                      </p>
-                      <p class={["text-sm", Theme.text_color(:muted)]}>
-                        {@children_summary}
-                      </p>
-                    </div>
-                  </div>
-                  <.icon
-                    name="hero-chevron-right"
-                    class={"w-5 h-5 #{Theme.text_color(:muted)}"}
-                  />
+            </div>
+            <div class="p-5 space-y-6">
+              <div>
+                <h3 class="text-sm font-semibold mb-2 text-hero-black">{gettext("Your Data")}</h3>
+                <p class="text-sm mb-4 text-[var(--fg-muted)]">
+                  {gettext("Download a copy of all your personal data")}
+                </p>
+                <.link href={~p"/users/export-data"}>
+                  <.kh_button variant={:ghost} icon="hero-arrow-down-tray">
+                    {gettext("Download My Data")}
+                  </.kh_button>
                 </.link>
               </div>
-            </div>
 
-            <%!-- Data & Privacy Card --%>
-            <div
-              id="data-privacy"
-              class={[
-                Theme.bg(:surface),
-                "shadow-sm border overflow-hidden",
-                Theme.rounded(:xl),
-                Theme.border_color(:light)
-              ]}
-            >
-              <div class={["p-5 border-b", Theme.border_color(:light)]}>
-                <div class="flex items-center gap-3">
-                  <.gradient_icon gradient_class="bg-purple-100" size="sm" shape="circle">
-                    <.icon name="hero-document-text" class="w-5 h-5 text-purple-600" />
-                  </.gradient_icon>
-                  <div>
-                    <h2 class={["font-semibold", Theme.text_color(:heading)]}>
-                      {gettext("Data & Privacy")}
-                    </h2>
-                    <p class={["text-sm", Theme.text_color(:muted)]}>
-                      {gettext("Download your data or delete your account")}
-                    </p>
-                  </div>
-                </div>
+              <div class="flex items-center gap-3">
+                <div class="flex-1 border-t border-[var(--error)]/30" />
+                <span class="text-xs font-bold text-[var(--error)] uppercase tracking-wide">
+                  {gettext("Danger Zone")}
+                </span>
+                <div class="flex-1 border-t border-[var(--error)]/30" />
               </div>
-              <div class="p-5 space-y-6">
-                <%!-- Data Export --%>
-                <div>
-                  <h3 class={["text-sm font-medium mb-2", Theme.text_color(:heading)]}>
-                    {gettext("Your Data")}
-                  </h3>
-                  <p class={["text-sm mb-4", Theme.text_color(:muted)]}>
-                    {gettext("Download a copy of all your personal data")}
-                  </p>
-                  <.link
-                    href={~p"/users/export-data"}
-                    class={[
-                      "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium",
-                      Theme.bg(:primary),
-                      "text-white hover:opacity-90",
-                      Theme.transition(:normal)
-                    ]}
-                  >
-                    <.icon name="hero-arrow-down-tray" class="w-5 h-5" />
-                    {gettext("Download My Data")}
-                  </.link>
-                </div>
 
-                <%!-- Danger Zone Divider --%>
-                <div class="flex items-center gap-3">
-                  <div class="flex-1 border-t border-red-200" />
-                  <span class="text-xs font-medium text-red-500 uppercase tracking-wide">
-                    {gettext("Danger Zone")}
-                  </span>
-                  <div class="flex-1 border-t border-red-200" />
-                </div>
-
-                <%!-- Delete Account --%>
-                <div class="bg-red-50 rounded-lg p-4 border border-red-200">
-                  <h3 class="text-sm font-medium mb-2 text-red-800">
-                    {gettext("Delete Account")}
-                  </h3>
-                  <p class="text-sm text-red-600 mb-4">
-                    {gettext(
-                      "This action cannot be undone. Your account data will be anonymized and you will be logged out."
-                    )}
-                  </p>
-                  <.form
-                    for={@delete_form}
-                    id="delete_account_form"
-                    phx-submit="delete_account"
-                    class="max-w-md"
+              <div class="bg-[var(--error-bg)] rounded-xl p-5 border border-[var(--error)]/20">
+                <h3 class="text-sm font-bold mb-2 text-[var(--error)]">
+                  {gettext("Delete Account")}
+                </h3>
+                <p class="text-sm text-[var(--error)]/80 mb-4">
+                  {gettext(
+                    "This action cannot be undone. Your account data will be anonymized and you will be logged out."
+                  )}
+                </p>
+                <.form
+                  for={@delete_form}
+                  id="delete_account_form"
+                  phx-submit="delete_account"
+                  class="max-w-md space-y-4"
+                >
+                  <.mk_input
+                    field={@delete_form[:password]}
+                    type="password"
+                    label={gettext("Enter your password to confirm")}
+                    autocomplete="current-password"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    phx-disable-with={gettext("Deleting...")}
+                    class={
+                      [
+                        "inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] rounded-xl",
+                        # typography-lint-ignore: destructive-action button mirrors KhButton primary surface on error tone
+                        "font-display font-bold tracking-tight",
+                        "bg-[var(--error)] text-white hover:opacity-90 transition-all cursor-pointer"
+                      ]
+                    }
                   >
-                    <.input
-                      field={@delete_form[:password]}
-                      type="password"
-                      label={gettext("Enter your password to confirm")}
-                      autocomplete="current-password"
-                      required
-                    />
-                    <.button
-                      type="submit"
-                      class="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
-                      phx-disable-with={gettext("Deleting...")}
-                    >
-                      {gettext("Delete My Account")}
-                    </.button>
-                  </.form>
-                </div>
+                    {gettext("Delete My Account")}
+                  </button>
+                </.form>
               </div>
             </div>
-          </div>
+          </.kh_card>
         </div>
       </div>
-    </div>
+    </section>
     """
   end
 
-  # Sidebar nav: uses <.link navigate> for LiveView routes, plain <a href> for anchors
   attr :icon, :string, required: true
-  attr :icon_bg, :string, required: true
-  attr :icon_color, :string, required: true
   attr :title, :string, required: true
   attr :href, :string, default: nil
   attr :navigate, :string, default: nil
 
-  defp settings_nav_item(assigns) do
+  defp settings_nav_link(assigns) do
     ~H"""
     <.link
       href={@href}
       navigate={@navigate}
-      class={[
-        "flex items-center gap-3 p-3 hover:bg-hero-grey-50",
-        Theme.transition(:normal)
-      ]}
+      class="flex items-center gap-3 px-4 py-2.5 hover:bg-hero-cream-100 transition-colors"
     >
-      <div class={["w-8 h-8 rounded-full flex items-center justify-center", @icon_bg]}>
-        <.icon name={@icon} class={"w-4 h-4 #{@icon_color}"} />
-      </div>
-      <span class={["text-sm font-medium", Theme.text_color(:body)]}>
-        {@title}
-      </span>
+      <.icon name={@icon} class="w-4 h-4 text-[var(--brand-primary-dark)]" />
+      <span class="text-sm font-semibold text-hero-black">{@title}</span>
     </.link>
     """
   end
@@ -508,6 +360,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
 
     socket =
       socket
+      |> assign(:active_nav, :auth)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))

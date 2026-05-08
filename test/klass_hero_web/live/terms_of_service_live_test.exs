@@ -100,12 +100,12 @@ defmodule KlassHeroWeb.TermsOfServiceLiveTest do
       refute html =~ "You must log in"
     end
 
-    test "shows back button", %{conn: conn} do
+    test "renders under :marketing chrome", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/terms")
 
-      # Hero section should have back button
-      assert has_element?(view, "a[href='/']") or
-               has_element?(view, "button[phx-click='navigate']")
+      assert has_element?(view, "header.sticky")
+      # mk_footer presence — assert structural footer link, label-translation-independent
+      assert has_element?(view, "footer a[href='/privacy']")
     end
 
     test "includes contact CTA section", %{conn: conn} do

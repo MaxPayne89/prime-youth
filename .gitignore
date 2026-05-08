@@ -61,3 +61,7 @@ npm-debug.log
 
 # Local-only test-drive reports
 .test-drive-reports/
+
+# Local debug artefacts (do not commit)
+/*.png
+.playwright-mcp/
