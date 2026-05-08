@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.50.0](https://github.com/MaxPayne89/klass-hero/compare/v0.49.0...v0.50.0) (2026-05-08)
+
+
+### Features
+
+* migrate UI to new design system shells ([#806](https://github.com/MaxPayne89/klass-hero/issues/806)) ([4da79cf](https://github.com/MaxPayne89/klass-hero/commit/4da79cf41287bbf82e76099beb91aa6bcf0d2924))
+
 ## [0.49.0](https://github.com/MaxPayne89/klass-hero/compare/v0.48.1...v0.49.0) (2026-05-01)
 
 
