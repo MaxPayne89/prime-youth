@@ -55,10 +55,6 @@ defmodule KlassHeroWeb.Router do
   scope "/", KlassHeroWeb do
     pipe_through :browser
 
-    # Marketing layout (sticky horizontal MkHeader + dark MkFooter).
-    # Currently scoped to / only — the other public pages (programs, about,
-    # contact, etc.) migrate to this layout in follow-up PRs and will move
-    # into this live_session as they go.
     # All public marketing routes — sticky horizontal mk_header + dark mk_footer chrome.
     live_session :marketing,
       layout: {KlassHeroWeb.Layouts, :marketing},

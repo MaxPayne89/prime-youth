@@ -564,7 +564,7 @@ defmodule KlassHeroWeb.CompositeComponents do
   ## Examples
 
       <.document_page
-        gradient_class={Theme.gradient(:primary)}
+        eyebrow_pill={gettext("Legal")}
         title={gettext("Terms of Service")}
         subtitle={gettext("Understanding our agreement with you")}
         last_updated="December 12, 2025"

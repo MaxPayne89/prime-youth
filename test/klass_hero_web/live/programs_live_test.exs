@@ -899,5 +899,48 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
 
       assert has_element?(view, "#mk-programs-stream[data-view='list']")
     end
+
+    test "toggle_view preserves entries appended via load_more (no page-1 reset)",
+         %{conn: conn} do
+      base_time = DateTime.utc_now()
+
+      for i <- 1..25 do
+        insert_program(%{
+          title: "Pagination Program #{i}",
+          inserted_at: DateTime.add(base_time, i * 1000, :second)
+        })
+      end
+
+      first_page_program = Repo.get_by!(ProgramListingSchema, title: "Pagination Program 25")
+      second_page_program = Repo.get_by!(ProgramListingSchema, title: "Pagination Program 1")
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+      assert_program_visible(view, first_page_program)
+      refute_program_visible(view, second_page_program)
+
+      view |> element("button[phx-click='load_more']") |> render_click()
+      assert_program_visible(view, first_page_program)
+      assert_program_visible(view, second_page_program)
+
+      view
+      |> element("[phx-click='toggle_view'][phx-value-view='list']")
+      |> render_click()
+
+      # Both pages must remain after the view toggle re-streams from cache.
+      assert_program_visible(view, first_page_program)
+      assert_program_visible(view, second_page_program)
+    end
+
+    test "search query 'all' is preserved in URL (per-key sentinel filter)",
+         %{conn: conn} do
+      _ = insert_program(%{title: "Whatever"})
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      view
+      |> element("input[name='search']")
+      |> render_change(%{"search" => "all"})
+
+      assert_patch(view, ~p"/programs?q=all")
+    end
   end
 end

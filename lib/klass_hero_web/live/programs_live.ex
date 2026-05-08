@@ -38,6 +38,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       |> assign(sort_by: "recommended")
       |> assign(view_mode: :grid)
       |> stream(:programs, [])
+      |> assign(loaded_programs: [])
       |> assign(programs_count: 0)
       |> assign(programs_empty?: true)
       |> assign(filters: filter_options())
@@ -103,6 +104,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       # (pass sort to ProgramCatalog.list_programs_paginated/3).
       |> assign(has_more: page_result.has_more and sort_by == "recommended")
       |> stream(:programs, programs, reset: true)
+      |> assign(loaded_programs: programs)
       |> assign(programs_count: length(programs))
       |> assign(:programs_empty?, Enum.empty?(programs))
       |> assign(database_error: false)
@@ -154,10 +156,16 @@ defmodule KlassHeroWeb.ProgramsLive do
   def handle_event("toggle_view", %{"view" => view}, socket) do
     view_mode = if view == "list", do: :list, else: :grid
 
-    # Stream entries render-cache: changing :view_mode without resetting the
-    # stream leaves the existing entry components in place. Re-stream the
-    # current page so the new view-mode component renders.
-    {:noreply, socket |> assign(view_mode: view_mode) |> reload_current_page()}
+    # Stream entries render-cache by id: switching :view_mode leaves the
+    # existing entry components in place. Re-stream the already-loaded
+    # programs (page 1 + any load_more pages) so view-mode-aware entry
+    # components re-render without a DB round-trip.
+    socket =
+      socket
+      |> assign(view_mode: view_mode)
+      |> stream(:programs, socket.assigns.loaded_programs, reset: true)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -195,6 +203,7 @@ defmodule KlassHeroWeb.ProgramsLive do
           |> assign(next_cursor: page_result.next_cursor)
           |> assign(has_more: page_result.has_more)
           |> assign(loading_more: false)
+          |> assign(loaded_programs: socket.assigns.loaded_programs ++ programs)
           |> assign(programs_count: socket.assigns.programs_count + length(programs))
           |> stream(:programs, programs)
 
@@ -228,30 +237,6 @@ defmodule KlassHeroWeb.ProgramsLive do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
   end
 
-  defp reload_current_page(socket) do
-    {:ok, page_result} =
-      ProgramCatalog.list_programs_paginated(
-        socket.assigns.page_size,
-        nil,
-        socket.assigns.active_filter
-      )
-
-    filtered_domain =
-      ProgramCatalog.filter_programs(page_result.items, socket.assigns.search_query)
-
-    sorted_domain = apply_sort(filtered_domain, socket.assigns.sort_by)
-    program_ids = Enum.map(sorted_domain, & &1.id)
-    capacities = ProgramCatalog.remaining_capacities(program_ids)
-    programs = Enum.map(sorted_domain, &program_to_map(&1, capacities))
-
-    socket
-    |> assign(next_cursor: page_result.next_cursor)
-    |> assign(has_more: page_result.has_more and socket.assigns.sort_by == "recommended")
-    |> stream(:programs, programs, reset: true)
-    |> assign(programs_count: length(programs))
-    |> assign(:programs_empty?, Enum.empty?(programs))
-  end
-
   defp sanitize_sort(sort) when sort in @valid_sorts, do: sort
   defp sanitize_sort(_), do: "recommended"
 
@@ -282,7 +267,12 @@ defmodule KlassHeroWeb.ProgramsLive do
       "sort" => assigns.sort_by
     }
     |> Map.merge(updates_map)
-    |> Enum.reject(fn {_k, v} -> v in ["", "all", "recommended"] end)
+    |> Enum.reject(fn
+      {_k, ""} -> true
+      {"filter", "all"} -> true
+      {"sort", "recommended"} -> true
+      _ -> false
+    end)
     |> Map.new()
   end
 
